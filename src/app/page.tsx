@@ -6,7 +6,16 @@ import { getAvailability, getTicketTypes } from "@/lib/orders";
 
 export const dynamic = "force-dynamic";
 
-async function loadTickets(): Promise<{ types: BookableType[]; maxPerOrder: number; salesOpen: boolean; error: boolean }> {
+// Vorschau ohne Datenbank: zeigt die Seite mit Platzhalterdaten, solange Supabase nicht eingerichtet ist
+const PREVIEW_TYPES: BookableType[] = [
+  { id: "ball", name: "Ball-Ticket", description: "Einlass ab 19:00 Uhr, Buffet, Programm und Afterparty.", admission: "ab 19:00 Uhr", price_cents: 6500, available: 300 },
+  { id: "afterparty", name: "Afterparty-Ticket", description: "Einlass ab 22:30 Uhr zur Afterparty.", admission: "ab 22:30 Uhr", price_cents: 2000, available: 100 },
+];
+
+async function loadTickets(): Promise<{ types: BookableType[]; maxPerOrder: number; salesOpen: boolean; error: boolean; preview: boolean }> {
+  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return { types: PREVIEW_TYPES, maxPerOrder: EVENT.maxPerOrder, salesOpen: true, error: false, preview: true };
+  }
   try {
     const [types, avail] = await Promise.all([getTicketTypes(), getAvailability()]);
     return {
@@ -21,15 +30,16 @@ async function loadTickets(): Promise<{ types: BookableType[]; maxPerOrder: numb
       maxPerOrder: avail.maxPerOrder,
       salesOpen: avail.salesOpen,
       error: false,
+      preview: false,
     };
   } catch (err) {
     console.error(err);
-    return { types: [], maxPerOrder: EVENT.maxPerOrder, salesOpen: false, error: true };
+    return { types: [], maxPerOrder: EVENT.maxPerOrder, salesOpen: false, error: true, preview: false };
   }
 }
 
 export default async function Home() {
-  const { types, maxPerOrder, salesOpen, error } = await loadTickets();
+  const { types, maxPerOrder, salesOpen, error, preview } = await loadTickets();
   const soldOut = types.length > 0 && types.every((t) => t.available === 0);
 
   return (
@@ -75,6 +85,11 @@ export default async function Home() {
         <section className="section" id="tickets">
           <div className="wrap narrow">
             <h2 className="h2">Tickets</h2>
+            {preview && (
+              <div className="note" style={{ marginBottom: 24 }}>
+                Vorschau ohne Datenbank: Preise und Plätze sind Platzhalter, Buchen ist erst nach der Einrichtung von Supabase und Stripe möglich.
+              </div>
+            )}
             {error ? (
               <div className="note">Der Ticketverkauf ist gerade nicht erreichbar. Bitte versuche es später noch einmal.</div>
             ) : !salesOpen ? (
@@ -82,7 +97,7 @@ export default async function Home() {
             ) : soldOut ? (
               <div className="note">Alle Tickets sind vergeben. Danke an alle, die dabei sind.</div>
             ) : null}
-            {!error && types.length > 0 && <BookingForm types={types} maxPerOrder={maxPerOrder} salesOpen={salesOpen && !soldOut} />}
+            {!error && types.length > 0 && <BookingForm types={types} maxPerOrder={maxPerOrder} salesOpen={salesOpen && !soldOut} preview={preview} />}
           </div>
         </section>
 

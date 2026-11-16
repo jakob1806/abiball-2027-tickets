@@ -15,7 +15,7 @@ export interface BookableType {
 
 const euro = (c: number) => new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(c / 100);
 
-export default function BookingForm({ types, maxPerOrder, salesOpen }: { types: BookableType[]; maxPerOrder: number; salesOpen: boolean }) {
+export default function BookingForm({ types, maxPerOrder, salesOpen, preview = false }: { types: BookableType[]; maxPerOrder: number; salesOpen: boolean; preview?: boolean }) {
   const [qty, setQty] = useState<Record<string, number>>(() => Object.fromEntries(types.map((t) => [t.id, 0])));
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -45,6 +45,7 @@ export default function BookingForm({ types, maxPerOrder, salesOpen }: { types: 
     e.preventDefault();
     setError(null);
     if (total === 0) return setError("Bitte wähle mindestens ein Ticket.");
+    if (preview) return setError("Vorschau: Buchen ist erst nach der Einrichtung von Supabase und Stripe möglich.");
     setBusy(true);
     try {
       const res = await fetch("/api/checkout", {
