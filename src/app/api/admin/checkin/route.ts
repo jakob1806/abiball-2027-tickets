@@ -26,3 +26,17 @@ export async function POST(req: Request) {
   const types = await ticketTypeMap();
   return NextResponse.json({ ...row, ticket_type_name: row?.ticket_type_id ? types[row.ticket_type_id]?.name : null });
 }
+
+/** Live-Zähler für den Scanner: eingecheckt / gültige Tickets. */
+export async function GET() {
+  const denied = await requireAdminApi();
+  if (denied) return denied;
+  const { data, error } = await db()
+    .from("tickets")
+    .select("checked_in_at, orders!inner(status)")
+    .eq("status", "valid")
+    .eq("orders.status", "paid");
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  const rows = data as unknown as { checked_in_at: string | null }[];
+  return NextResponse.json({ inside: rows.filter((r) => r.checked_in_at).length, total: rows.length });
+}

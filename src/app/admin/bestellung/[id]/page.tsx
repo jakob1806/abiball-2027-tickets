@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import AdminOrderActions from "@/components/AdminOrderActions";
+import EditOrderForm from "@/components/EditOrderForm";
 import { getOrderById, ticketTypeMap } from "@/lib/orders";
 import { dateTime, euro, PAYMENT_LABEL, relationLabel, STATUS_LABEL } from "@/lib/format";
 import { isStripeTestMode } from "@/lib/stripe";
@@ -15,11 +16,31 @@ export default async function AdminOrder({ params }: { params: { id: string } })
 
   return (
     <main className="wrap" style={{ paddingTop: 32, paddingBottom: 64 }}>
-      <p className="small"><Link href="/admin" className="muted">← Übersicht</Link></p>
+      <p className="small"><Link href="/admin/buchungen" className="muted">← Buchungen</Link></p>
       <h1 className="h2" style={{ marginBottom: 8 }}>{order.buyer_name}</h1>
       <p className="muted" style={{ marginTop: 0 }}>{STATUS_LABEL[order.status]} · {PAYMENT_LABEL[order.payment_method]} · {euro(order.amount_cents)}</p>
 
-      <AdminOrderActions orderId={order.id} status={order.status} canRefund={order.payment_method === "stripe" && !!order.stripe_payment_intent} />
+      <div className="row" style={{ alignItems: "flex-start" }}>
+        <AdminOrderActions orderId={order.id} status={order.status} canRefund={order.payment_method === "stripe" && !!order.stripe_payment_intent} />
+      </div>
+      <div style={{ marginTop: 12 }}>
+        <EditOrderForm
+          orderId={order.id}
+          initial={{
+            buyer_name: order.buyer_name,
+            email: order.email,
+            relation: order.relation,
+            guest_of: order.guest_of,
+            notes: order.notes,
+            tickets: order.tickets.filter((t) => t.status === "valid").map((t) => ({
+              id: t.id,
+              holder_name: t.holder_name,
+              code: t.code,
+              type: types[t.ticket_type_id]?.name ?? t.ticket_type_id,
+            })),
+          }}
+        />
+      </div>
 
       <dl className="facts" style={{ margin: "40px 0" }}>
         <div><dt>E-Mail</dt><dd style={{ wordBreak: "break-all" }}>{order.email}</dd></div>

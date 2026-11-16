@@ -220,3 +220,37 @@ td a { text-decoration: none; font-weight: 600; }
   .foot .cols { flex-direction: column; gap: 20px; }
   .h2 { margin-bottom: 24px; }
 }
+
+/* Admin-Dashboard */
+.admin-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+.admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 860px) { .admin-grid { grid-template-columns: 1fr; } }
+.panel { border: 1px solid var(--line); border-radius: 14px; padding: 20px; min-width: 0; }
+.panel table th { background: none; padding-left: 0; }
+.panel table td { padding-left: 0; }
+.meter-row { margin-bottom: 18px; }
+.meter-label { display: flex; justify-content: space-between; font-size: 15px; margin-bottom: 6px; gap: 12px; }
+.meter { height: 8px; background: var(--soft); border-radius: 999px; overflow: hidden; }
+.meter span { display: block; height: 100%; background: var(--fg); border-radius: 999px; }
+.chart-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.chart-box { position: relative; }
+.chart-tip {
+  position: absolute; top: 0; transform: translateX(-50%); pointer-events: none;
+  background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px;
+  font-size: 13px; display: grid; white-space: nowrap; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.filters { grid-template-columns: 1fr 160px 170px 170px auto; }
+@media (max-width: 860px) { .filters { grid-template-columns: 1fr 1fr; } .filters input { grid-column: 1 / -1; } }
+@media print {
+  .no-print, .admin-top { display: none !important; }
+  body { font-size: 11px; }
+  th, td { padding: 4px 6px; }
+  .table-wrap { border: 0; }
+}
+.checkbox-box { display: inline-flex; width: 18px; height: 18px; border: 1.5px solid #000; border-radius: 4px; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; }
+.admin-nav a.active { color: var(--fg); font-weight: 600; }
+@media (max-width: 960px) {
+  .admin-top .wrap { height: auto; flex-direction: column; align-items: stretch; padding-top: 12px; }
+  .admin-nav { overflow-x: auto; gap: 20px; padding: 10px 0 12px; white-space: nowrap; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .admin-nav::-webkit-scrollbar { display: none; }
+}

@@ -15,19 +15,19 @@ const name = z.string().trim().min(2, "Bitte gib einen Namen an.").max(120);
 const schema = z
   .object({
     items: z
-      .array(z.object({ ticket_type_id: z.string().min(1).max(40), quantity: z.number().int().min(1).max(EVENT.maxPerOrder) }))
+      .array(z.object({ ticket_type_id: z.string().min(1).max(40), quantity: z.number().int().min(1).max(20) }))
       .min(1),
     name,
     email: z.string().trim().email("Bitte gib eine gültige E-Mail-Adresse an.").max(200),
     relation: z.enum(["abiturient", "gast"]),
     guestOf: z.string().trim().max(120).nullable().optional(),
-    guestNames: z.array(name).max(EVENT.maxPerOrder - 1),
+    guestNames: z.array(name).max(19),
     youthProtection: z.literal(true, { message: "Bitte bestätige den Hinweis zum Jugendschutz." }),
     terms: z.literal(true, { message: "Bitte akzeptiere AGB und Datenschutz." }),
   })
   .superRefine((v, ctx) => {
     const total = v.items.reduce((s, i) => s + i.quantity, 0);
-    if (total > EVENT.maxPerOrder) ctx.addIssue({ code: "custom", message: `Höchstens ${EVENT.maxPerOrder} Tickets pro Bestellung.` });
+    if (total > 20) ctx.addIssue({ code: "custom", message: "Zu viele Tickets in einer Bestellung." });
     if (v.guestNames.length !== total - 1) ctx.addIssue({ code: "custom", message: "Bitte gib die Namen aller weiteren Gäste an." });
     if (v.relation === "gast" && (!v.guestOf || v.guestOf.length < 2))
       ctx.addIssue({ code: "custom", message: "Bitte gib an, wessen Gast du bist." });

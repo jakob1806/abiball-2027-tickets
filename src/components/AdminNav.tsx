@@ -14,19 +14,22 @@ export default function AdminNav() {
     router.refresh();
   }
 
+  const active = (href: string) => (href === "/admin" ? path === "/admin" : path.startsWith(href));
   const link = (href: string, label: string) => (
-    <Link href={href} style={{ color: path === href ? "#000" : undefined }}>{label}</Link>
+    <Link href={href} className={active(href) ? "active" : undefined}>{label}</Link>
   );
 
   return (
     <header className="top admin-top">
       <div className="wrap">
-        <Link href="/admin" className="brand">Abiball 2027 · Admin</Link>
-        <nav className="nav">
+        <Link href="/admin" className="brand">Abiball 2027 <span className="muted" style={{ fontWeight: 400 }}>Admin</span></Link>
+        <nav className="nav admin-nav">
           {link("/admin", "Übersicht")}
+          {link("/admin/buchungen", "Buchungen")}
+          {link("/admin/gaesteliste", "Gästeliste")}
           {link("/admin/neu", "Neue Buchung")}
           {link("/admin/scanner", "Einlass")}
-          <a href="/api/admin/export">Excel</a>
+          {link("/admin/einstellungen", "Einstellungen")}
           <button onClick={logout} style={{ background: "none", border: 0, font: "inherit", color: "var(--muted)", cursor: "pointer", padding: 0 }}>
             Abmelden
           </button>

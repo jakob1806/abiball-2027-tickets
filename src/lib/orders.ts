@@ -84,7 +84,7 @@ function sortTickets(order: OrderWithDetails | null): OrderWithDetails | null {
 /** Übersetzt Fehler aus den SQL-Funktionen in verständliche Meldungen. */
 export function reservationErrorMessage(message: string): string {
   if (message.includes("SOLD_OUT")) return "Leider sind nicht mehr genügend Plätze für diese Auswahl frei.";
-  if (message.includes("MAX_PER_ORDER")) return "Pro Bestellung sind höchstens 8 Tickets möglich.";
+  if (message.includes("MAX_PER_ORDER")) return "Pro Bestellung sind nicht so viele Tickets möglich.";
   if (message.includes("EMPTY_ORDER")) return "Bitte wähle mindestens ein Ticket.";
   if (message.includes("SALES_CLOSED")) return "Der Ticketverkauf ist derzeit geschlossen.";
   if (message.includes("UNKNOWN_TICKET_TYPE")) return "Diese Ticketart ist nicht verfügbar.";

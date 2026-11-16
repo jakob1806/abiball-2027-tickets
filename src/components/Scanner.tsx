@@ -46,6 +46,22 @@ export default function Scanner() {
   const [result, setResult] = useState<Result | null>(null);
   const [manual, setManual] = useState("");
   const [history, setHistory] = useState<Result[]>([]);
+  const [counter, setCounter] = useState<{ inside: number; total: number } | null>(null);
+
+  const refreshCounter = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/checkin", { cache: "no-store" });
+      if (res.ok) setCounter(await res.json());
+    } catch {
+      /* offline */
+    }
+  }, []);
+
+  useEffect(() => {
+    void refreshCounter();
+    const id = setInterval(() => void refreshCounter(), 15000); // mehrere Scanner gleichzeitig
+    return () => clearInterval(id);
+  }, [refreshCounter]);
 
   const check = useCallback(async (code: string) => {
     const now = Date.now();
@@ -67,13 +83,14 @@ export default function Scanner() {
       setResult(data);
       setHistory((h) => [data, ...h].slice(0, 15));
       feedback(data.result === "ok");
+      if (data.result === "ok") void refreshCounter();
     } catch {
       setResult({ result: "invalid", code, holder_name: null, ticket_type_name: null, checked_in_at: null });
       feedback(false);
     } finally {
       busyRef.current = false;
     }
-  }, []);
+  }, [refreshCounter]);
 
   async function start() {
     setCamError(null);
@@ -107,6 +124,12 @@ export default function Scanner() {
 
   return (
     <div className="form">
+      {counter && (
+        <div className="meter-row" style={{ margin: 0 }}>
+          <div className="meter-label"><strong>{counter.inside} drin</strong><span className="muted">von {counter.total} Tickets</span></div>
+          <div className="meter"><span style={{ width: `${counter.total ? Math.round((counter.inside / counter.total) * 100) : 0}%` }} /></div>
+        </div>
+      )}
       <div id="reader" style={{ minHeight: running ? 0 : 0 }} />
       <div className="row">
         {!running ? (

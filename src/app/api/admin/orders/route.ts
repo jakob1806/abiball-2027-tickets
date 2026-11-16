@@ -4,19 +4,18 @@ import { db } from "@/lib/supabase";
 import { requireAdminApi } from "@/lib/admin-auth";
 import { reservationErrorMessage } from "@/lib/orders";
 import { sendTicketMail } from "@/lib/mail";
-import { EVENT } from "@/lib/event";
 import type { Order } from "@/lib/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const schema = z.object({
-  items: z.array(z.object({ ticket_type_id: z.string().min(1), quantity: z.number().int().min(1).max(EVENT.maxPerOrder) })).min(1),
+  items: z.array(z.object({ ticket_type_id: z.string().min(1), quantity: z.number().int().min(1).max(20) })).min(1),
   name: z.string().trim().min(2).max(120),
   email: z.string().trim().email().max(200),
   relation: z.enum(["abiturient", "gast"]),
   guestOf: z.string().trim().max(120).nullable().optional(),
-  guestNames: z.array(z.string().trim().max(120)).max(EVENT.maxPerOrder - 1),
+  guestNames: z.array(z.string().trim().max(120)).max(19),
   paymentMethod: z.enum(["bar", "ueberweisung", "frei"]),
   notes: z.string().trim().max(500).optional(),
   sendMail: z.boolean(),
