@@ -25,4 +25,4 @@ export const EVENT = {
 export const VENUE_ONE_LINE = `${EVENT.venueName}, ${EVENT.venueStreet}, ${EVENT.venueCity}`;
 
 export const YOUTH_PROTECTION_TEXT =
-  "Mir ist bekannt, dass sich Personen unter 18 Jahren ohne erziehungsbeauftragte Person nur bis 24 Uhr auf der Veranstaltung aufhalten dürfen (Jugendschutzgesetz). Am Einlass kann ein Ausweis verlangt werden.";
+  "Mir ist bekannt: Personen unter 16 Jahren dürfen nur in Begleitung einer personensorgeberechtigten oder erziehungsbeauftragten Person teilnehmen, Jugendliche unter 18 Jahren ohne erziehungsbeauftragte Person nur bis 24 Uhr bleiben (Jugendschutzgesetz). Am Einlass kann ein Ausweis verlangt werden. Ich informiere meine Gäste darüber.";
