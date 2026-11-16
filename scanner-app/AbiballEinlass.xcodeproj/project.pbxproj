@@ -19,6 +19,7 @@
 		7F601C630731E366DEA4FA51 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 0BE94DF6AA2DA54534DE9190 /* PrivacyInfo.xcprivacy */; };
 		A8B2191018544AC8DF0094F9 /* GuestsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80919F5D3AD0AD683057A4B2 /* GuestsView.swift */; };
 		B1CBEF33723368A0EF6D5C14 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63AAAD0398CF46745E3DF10E /* AppModel.swift */; };
+		B9234AD78BE4602BC5FB97C8 /* StatsDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BC11CB400D5F698CE920DEC /* StatsDetailView.swift */; };
 		C5DE77444F283E221185151B /* QRScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53F54121A610ADB80E45E4ED /* QRScanner.swift */; };
 		C89848EFA681793101F68B79 /* ScanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 933FF7D8274310A23B8120F2 /* ScanView.swift */; };
 		D14EF3F72A0BE548387B0EC7 /* Demo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C7339319B3F159E5BFE340C /* Demo.swift */; };
@@ -34,6 +35,7 @@
 		0379A36EBCD83C3024927D10 /* SchoolLogo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SchoolLogo.swift; sourceTree = "<group>"; };
 		04053E421171E0D0EB92278D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		045E0CCE1FDF9DEA13400A02 /* ResultCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultCard.swift; sourceTree = "<group>"; };
+		0BC11CB400D5F698CE920DEC /* StatsDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsDetailView.swift; sourceTree = "<group>"; };
 		0BE94DF6AA2DA54534DE9190 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		0C7339319B3F159E5BFE340C /* Demo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Demo.swift; sourceTree = "<group>"; };
 		0E50521446D678E8B27A84E5 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
@@ -96,6 +98,7 @@
 				933FF7D8274310A23B8120F2 /* ScanView.swift */,
 				0379A36EBCD83C3024927D10 /* SchoolLogo.swift */,
 				914994C2065905B67737C0A6 /* StatsBar.swift */,
+				0BC11CB400D5F698CE920DEC /* StatsDetailView.swift */,
 				CAEE67614EE2A6CD695035E5 /* StatsPill.swift */,
 				C2E3B05EBFA8568A6B6CE252 /* Style.swift */,
 			);
@@ -191,6 +194,7 @@
 				C89848EFA681793101F68B79 /* ScanView.swift in Sources */,
 				E7AFAD4CC5ECF104FDD8A878 /* SchoolLogo.swift in Sources */,
 				378EA90CE0896ED97FF436E8 /* StatsBar.swift in Sources */,
+				B9234AD78BE4602BC5FB97C8 /* StatsDetailView.swift in Sources */,
 				1DAB64EB98F58C8F6AC7A0B7 /* StatsPill.swift in Sources */,
 				49F208366DCF141FAE0DCAFD /* Style.swift in Sources */,
 			);

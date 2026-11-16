@@ -10,7 +10,7 @@ struct MainView: View {
                 .tabItem { Label("Scannen", systemImage: "qrcode.viewfinder") }
                 .tag(0)
             NavigationStack { GuestsView() }
-                .tabItem { Label("Noch nicht da", systemImage: "person.crop.circle.badge.questionmark") }
+                .tabItem { Label("Gäste", systemImage: "person.2") }
                 .tag(1)
             NavigationStack { ContactView() }
                 .tabItem { Label("Kontakt", systemImage: "person.crop.circle") }

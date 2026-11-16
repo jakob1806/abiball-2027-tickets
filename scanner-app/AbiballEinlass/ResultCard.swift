@@ -90,11 +90,6 @@ struct ResultCard: View {
                 Label("Erneut versuchen", systemImage: "arrow.clockwise").frame(maxWidth: .infinity)
             }
             .controlSize(.large).tint(color).glassButtonStyle(prominent: true)
-        } else if let onDismiss {
-            Button(action: onDismiss) {
-                Text(status == "ok" ? "Weiter scannen" : "Verstanden").frame(maxWidth: .infinity)
-            }
-            .controlSize(.large).tint(color).glassButtonStyle(prominent: true)
         }
     }
 

@@ -40,10 +40,15 @@ jobs:
           version: 2.109.1
 
       - name: Secret prüfen
+        id: secret
         env:
           DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: |
-          if [ -z "$DB_URL" ]; then
+          if [ -n "$DB_URL" ]; then echo "ok=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+          echo "ok=false" >> "$GITHUB_OUTPUT"
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "::warning::Secret SUPABASE_DB_URL fehlt – Probelauf übersprungen."
+          else
             echo "::error::Secret SUPABASE_DB_URL fehlt (Settings → Secrets and variables → Actions)."
             exit 1
           fi
@@ -55,12 +60,13 @@ jobs:
         run: supabase migration repair --db-url "$DB_URL" --status applied ${{ inputs.baseline }}
 
       - name: Stand anzeigen
+        if: steps.secret.outputs.ok == 'true'
         env:
           DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: supabase migration list --db-url "$DB_URL"
 
       - name: Probelauf (Pull Request)
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && steps.secret.outputs.ok == 'true'
         env:
           DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: supabase db push --db-url "$DB_URL" --dry-run

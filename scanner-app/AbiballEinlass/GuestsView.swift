@@ -14,7 +14,7 @@ struct GuestsView: View {
         List {
             Section {
                 Picker("Anzeige", selection: $status) {
-                    Text("Noch nicht da").tag("missing")
+                    Text("Fehlen noch").tag("missing")
                     Text("Drin").tag("in")
                     Text("Alle").tag("all")
                 }
@@ -27,6 +27,7 @@ struct GuestsView: View {
                     ResultCard(result: lastResult, onDismiss: { withAnimation { self.lastResult = nil } }, onRetry: {
                         if case .failure(_, .ticket(let id)) = lastResult, let g = guests.first(where: { $0.id == id }) { checkin(g) }
                     })
+                    .onTapGesture { withAnimation { self.lastResult = nil } }
                     .listRowInsets(EdgeInsets())
                     .listRowBackground(Color.clear)
                 }
@@ -44,7 +45,7 @@ struct GuestsView: View {
             }
         }
         .listStyle(.insetGrouped)
-        .navigationTitle("Noch nicht da")
+        .navigationTitle("Gäste")
         .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Name oder Ticketnummer")
         .autocorrectionDisabled()
         .toolbar { ToolbarItem(placement: .topBarTrailing) { AccountMenu() } }
