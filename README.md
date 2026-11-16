@@ -174,6 +174,46 @@ Der Link enthält einen signierten JWT mit Ticket-Klasse und Ticket-Objekten –
    `NEXT_PUBLIC_SITE_URL` auf die echte Domain setzen.
 3. Nach dem ersten Deployment die Webhook-URL in Stripe auf die echte Domain setzen.
 
+### 6a. Automatisches Deployment über GitHub Actions
+
+Produktion wird **nicht mehr direkt von Vercel** veröffentlicht, sondern von GitHub Actions
+(`.github/workflows/deploy.yml`). Bei jedem Push auf `main` (also nach jedem Merge):
+
+1. **Prüfungen**: TypeScript, Lint, Build und alle Migrationen in einer leeren Testdatenbank mit Rauchtest
+   (`supabase/tests/smoke.sql`). Außerdem `scripts/check-migrations.mjs`: Migrationen haben eindeutige,
+   aufsteigende Nummern, und bestehende Migrationen werden nie verändert.
+2. **Datenbank**: neue Migrationen werden in Supabase eingespielt (`supabase db push`).
+3. **Website**: Build und Veröffentlichung bei Vercel – erst, wenn die Datenbank fertig ist.
+4. **Rauchtest** gegen die echte Seite (Startseite inkl. Datenbank, Admin-Login, Scanner, Scanner-API).
+
+Schlägt ein Schritt fehl, laufen die folgenden nicht. GitHub schickt dann eine Mail. Bei jedem Pull Request
+laufen die Prüfungen ebenfalls, und ein Kommentar in der Zusammenfassung zeigt, welche Migrationen beim Merge
+in Produktion laufen würden. Vercel baut für andere Branches weiterhin Vorschauen. Änderungen nur an der
+iOS-App (`scanner-app/`) oder an Texten (`*.md`) lösen keinen Deploy aus.
+
+**Einmalig einrichten** (GitHub → Repo → **Settings → Secrets and variables → Actions → New repository secret**):
+
+| Secret | Woher |
+|---|---|
+| `SUPABASE_DB_URL` | Supabase → Projekt → **Connect** → **Session pooler** (URI mit Passwort, Port 5432). Nicht „Direct connection“: die ist nur per IPv6 erreichbar, GitHub nutzt IPv4. |
+| `VERCEL_TOKEN` | Vercel → Account Settings → **Tokens** → Create |
+| `VERCEL_ORG_ID` | Vercel → Team Settings → General → **Team ID** (bei persönlichem Konto: Account Settings → General → **Vercel ID**) |
+| `VERCEL_PROJECT_ID` | Vercel → Projekt → Settings → General → **Project ID** |
+
+Optional: Unter **Settings → Environments → production** eine Freigabe („Required reviewers“) eintragen. Dann wartet
+jeder Deploy vor der Datenbank auf ein OK. Unter **Settings → Branches** kann man für `main` verlangen, dass die
+Prüfungen grün sind, bevor gemergt werden darf.
+
+**Manuell starten**: Actions → Deploy → **Run workflow** (z. B. um nur die Website neu zu veröffentlichen).
+
+**Zurückrollen**: Vercel → Deployments → letztes funktionierendes Deployment → **Instant Rollback**. Die Datenbank
+bleibt dabei auf dem neuen Stand – deshalb müssen Migrationen immer so gebaut sein, dass auch der vorherige Code
+damit läuft (z. B. neue Spalten mit Standardwert, alte Spalten erst in einem späteren Schritt entfernen).
+
+**Neue Migration anlegen**: Datei `supabase/migrations/JJJJMMTTHHMMSS_beschreibung.sql` mit aktuellem Datum und
+Uhrzeit. Nie per Hand im SQL-Editor ausführen, sonst kennt Supabase sie nicht als erledigt und der Deploy würde sie
+noch einmal versuchen.
+
 ### 7. Vor dem Verkaufsstart
 
 - [ ] Preise und Kontingente in `ticket_types` prüfen

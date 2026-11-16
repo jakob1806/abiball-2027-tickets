@@ -1,0 +1,195 @@
+# Produktion: bei jedem Push auf main (also auch nach jedem Merge eines Pull Requests).
+#
+# Reihenfolge – jeder Schritt läuft nur, wenn der vorherige geklappt hat:
+#   1. Prüfungen (Typen, Lint, Build, Migrationen in Testdatenbank)
+#   2. Neue Datenbank-Migrationen in Supabase einspielen
+#   3. Website bei Vercel veröffentlichen
+#   4. Rauchtest gegen die echte Seite
+#
+# Damit kann es nicht mehr passieren, dass neuer Code live geht, bevor die Datenbank bereit ist.
+# Vercel selbst veröffentlicht main nicht mehr automatisch (siehe vercel.json), Vorschauen für
+# andere Branches baut Vercel weiterhin.
+#
+# Benötigte Secrets (Settings → Secrets and variables → Actions):
+#   SUPABASE_DB_URL     Verbindungs-URL der Datenbank (Supabase → Connect → Session pooler)
+#   VERCEL_TOKEN        Vercel → Account Settings → Tokens
+#   VERCEL_ORG_ID       Vercel → Team Settings → General → Team ID
+#   VERCEL_PROJECT_ID   Vercel → Projekt → Settings → General → Project ID
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "scanner-app/**"
+      - "**/*.md"
+  workflow_dispatch:
+    inputs:
+      skip_migrations:
+        description: "Migrationen überspringen (nur Website neu veröffentlichen)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+# Nie zwei Deploys gleichzeitig; ein laufender Deploy wird nicht abgebrochen.
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+env:
+  NEXT_TELEMETRY_DISABLED: "1"
+
+jobs:
+  checks:
+    name: Prüfungen
+    uses: ./.github/workflows/ci.yml
+    with:
+      # Vergleich mit dem Stand vor diesem Push: bestehende Migrationen dürfen nicht verändert worden sein
+      base_ref: ${{ github.event_name == 'push' && github.event.before != '0000000000000000000000000000000000000000' && github.event.before || '' }}
+
+  preflight:
+    name: Zugangsdaten vorhanden?
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Secrets prüfen
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          missing=""
+          for name in SUPABASE_DB_URL VERCEL_TOKEN VERCEL_ORG_ID VERCEL_PROJECT_ID; do
+            [ -n "${!name}" ] || missing="$missing $name"
+          done
+          if [ -n "$missing" ]; then
+            echo "::error::Es fehlen Secrets:$missing. Eintragen unter Settings → Secrets and variables → Actions (Anleitung im README, Abschnitt Deployment)."
+            exit 1
+          fi
+          echo "Alle Zugangsdaten vorhanden."
+
+  migrate:
+    name: Datenbank (Supabase)
+    needs: [checks, preflight]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Umgebung „production“: Hier kann Jakob in den Repo-Einstellungen eine Freigabe verlangen,
+    # dann wartet der Deploy vor der Datenbank auf ein OK.
+    environment: production
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Plan anzeigen
+        run: |
+          set -o pipefail
+          npx --yes supabase@3.2.0 db push --remote="$SUPABASE_DB_URL" --dry-run --yes --output-format json --agent no 2>&1 | tee plan.txt
+
+      - name: Migrationen einspielen
+        if: ${{ !inputs.skip_migrations }}
+        run: |
+          set -o pipefail
+          if grep -q '"upToDate":true' plan.txt; then
+            echo "Datenbank ist aktuell, nichts zu tun."
+            echo "### Datenbank: keine neuen Migrationen" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          npx --yes supabase@3.2.0 db push --remote="$SUPABASE_DB_URL" --yes --output-format json --agent no 2>&1 | tee push.txt
+          {
+            echo "### Datenbank: Migrationen eingespielt"
+            echo '```'
+            grep -o '"migrations":\[[^]]*\]' push.txt | head -1
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  deploy:
+    name: Website (Vercel)
+    needs: migrate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    outputs:
+      url: ${{ steps.site.outputs.url }}
+      deployment: ${{ steps.vercel.outputs.deployment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Vercel CLI installieren
+        run: npm install --global vercel@65.16.0
+
+      - name: Einstellungen und Umgebungsvariablen von Vercel holen
+        run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+
+      - name: Adresse der Seite ermitteln
+        id: site
+        run: |
+          url=$(grep -E '^NEXT_PUBLIC_SITE_URL=' .vercel/.env.production.local | head -1 | cut -d= -f2- | tr -d '"' | sed 's#/$##')
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "Seite: ${url:-unbekannt}"
+
+      - name: Build
+        run: vercel build --prod --token="$VERCEL_TOKEN"
+
+      - name: Veröffentlichen
+        id: vercel
+        run: |
+          deployment=$(vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN")
+          echo "deployment=$deployment" >> "$GITHUB_OUTPUT"
+          {
+            echo "### Website veröffentlicht"
+            echo "- Deployment: $deployment"
+            echo "- Seite: ${{ steps.site.outputs.url }}"
+            echo "- Commit: ${GITHUB_SHA::7}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  smoke:
+    name: Rauchtest (echte Seite)
+    needs: deploy
+    if: needs.deploy.outputs.url != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SITE: ${{ needs.deploy.outputs.url }}
+    steps:
+      - name: Seiten und Schnittstellen prüfen
+        run: |
+          check() { # Pfad, erwarteter Status
+            for _ in 1 2 3 4 5 6; do
+              code=$(curl -s -o body.txt -w '%{http_code}' --max-time 20 "$SITE$1" || true)
+              [ "$code" = "$2" ] && { echo "ok   $1 → $code"; return 0; }
+              sleep 10
+            done
+            echo "::error::$1 antwortet mit $code statt $2"
+            return 1
+          }
+          fail=0
+          check / 200 || fail=1
+          # Startseite liest Ticketarten und freie Plätze aus der Datenbank
+          if grep -q "gerade nicht erreichbar" body.txt; then
+            echo "::error::Startseite meldet: Ticketverkauf nicht erreichbar (Datenbank?)"; fail=1
+          fi
+          check /admin/login 200 || fail=1
+          check /scanner 200 || fail=1
+          check /api/scanner/me 401 || fail=1
+          check /impressum 200 || fail=1
+          if [ "$fail" = 1 ]; then
+            {
+              echo "### Rauchtest fehlgeschlagen"
+              echo "Die neue Version ist live, aber nicht alles antwortet wie erwartet."
+              echo "Schnell zurück: Vercel → Deployments → letztes funktionierendes Deployment → **Instant Rollback**."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          echo "### Rauchtest bestanden" >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,123 @@
+# Prüfungen für jeden Pull Request – und vor jedem Deploy (wird von deploy.yml aufgerufen).
+name: Prüfungen
+
+on:
+  pull_request:
+    paths-ignore:
+      - "scanner-app/**"
+  workflow_call:
+    inputs:
+      base_ref:
+        description: "Stand, gegen den die Migrations-Regeln geprüft werden (Commit oder Branch)"
+        type: string
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}-${{ github.event_name }}
+  cancel-in-progress: true
+
+env:
+  NEXT_TELEMETRY_DISABLED: "1"
+
+jobs:
+  web:
+    name: Website (Typen, Lint, Build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - name: TypeScript
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint
+      - name: Build
+        run: npm run build
+
+  migrations:
+    name: Datenbank-Migrationen
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: postgres
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Regeln prüfen (Namen, Reihenfolge, nichts Bestehendes verändert)
+        env:
+          BASE_REF: ${{ inputs.base_ref || (github.base_ref && format('origin/{0}', github.base_ref)) || '' }}
+        run: |
+          if [ -n "$BASE_REF" ] && ! git rev-parse --verify --quiet "$BASE_REF^{commit}" >/dev/null; then
+            echo "Basis $BASE_REF nicht gefunden, prüfe nur Namen und Nummern."
+            BASE_REF=""
+          fi
+          node scripts/check-migrations.mjs ${BASE_REF:+"$BASE_REF"}
+
+      - name: Alle Migrationen in leerer Datenbank ausführen
+        run: |
+          psql -v ON_ERROR_STOP=1 -q -f supabase/tests/setup.sql
+          for f in supabase/migrations/*.sql; do
+            echo "::group::$f"
+            psql -v ON_ERROR_STOP=1 -q --single-transaction -f "$f"
+            echo "::endgroup::"
+          done
+
+      - name: Rauchtest (Kauf, Tickets, Einlass, Abendkasse)
+        run: psql -v ON_ERROR_STOP=1 -f supabase/tests/smoke.sql
+
+  db-plan:
+    name: Was in Produktion laufen würde
+    # Nur bei Pull Requests; braucht das Secret SUPABASE_DB_URL (fehlt z. B. bei Dependabot – dann wird übersprungen)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+    steps:
+      - uses: actions/checkout@v4
+        if: env.SUPABASE_DB_URL != ''
+
+      - name: Migrationen gegen Produktion vergleichen (nur lesen)
+        if: env.SUPABASE_DB_URL != ''
+        run: |
+          set -o pipefail
+          npx --yes supabase@3.2.0 db push --remote="$SUPABASE_DB_URL" --dry-run --yes --output-format json --agent no 2>&1 | tee plan.txt
+          {
+            echo "### Datenbank nach dem Merge"
+            if grep -q '"upToDate":true' plan.txt; then
+              echo "Keine neuen Migrationen – die Datenbank bleibt unverändert."
+            else
+              echo "Diese Migrationen werden beim Deploy **vor** dem neuen Code eingespielt:"
+              echo '```'
+              grep -o '"migrations":\[[^]]*\]' plan.txt | head -1
+              echo '```'
+              echo "Bitte sicherstellen, dass der **bisherige** Code mit der neuen Datenbank weiterläuft."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
