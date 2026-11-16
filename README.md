@@ -10,7 +10,7 @@ Veranstalter ist der Abiturjahrgang 2027 – es handelt sich nicht um eine Schul
 
 ## Funktionen
 
-- Öffentliche Seite mit Ticketauswahl (Ball-Ticket, Afterparty-Ticket), max. 8 Tickets pro Bestellung, Gesamtkapazität 350
+- Öffentliche Seite mit Ticketauswahl (Ball-Ticket, Afterparty-Ticket), max. 8 Tickets pro Bestellung, Gesamtkapazität 500
 - Bezahlung mit Stripe Checkout (Karte, Apple Pay, Google Pay), Plätze werden 30 Minuten reserviert
 - Stripe-Webhook (idempotent) erzeugt Tickets mit eindeutigem QR-Code und verschickt eine Mail über Resend mit
   PDF-Tickets, einer `.pkpass`-Datei pro Ticket (Apple Wallet), einer `.ics`-Kalenderdatei und einem Google-Wallet-Link
