@@ -3,7 +3,7 @@ import { z } from "zod";
 import { db } from "@/lib/supabase";
 import { stripe } from "@/lib/stripe";
 import { siteUrl } from "@/lib/env";
-import { EVENT } from "@/lib/event";
+import { AGE_GROUP_IDS, EVENT } from "@/lib/event";
 import { reservationErrorMessage, ticketTypeMap } from "@/lib/orders";
 import type { Order } from "@/lib/types";
 import { getBankDetails, newTransferReference, sendTransferInstructions, transferDueDate } from "@/lib/transfer";
@@ -28,6 +28,7 @@ const schema = z
     relation: z.enum(["abiturient", "gast"]),
     guestOf: z.string().trim().max(120).nullable().optional(),
     guestNames: z.array(name).max(19),
+    ageGroups: z.array(z.enum(AGE_GROUP_IDS, { message: "Bitte gib für jede Person das Alter an." })).max(20),
     youthProtection: z.literal(true, { message: "Bitte bestätige den Hinweis zum Jugendschutz." }),
     terms: z.literal(true, { message: "Bitte akzeptiere AGB und Datenschutz." }),
     paymentMethod: z.enum(["stripe", "ueberweisung"]).default("stripe"),
@@ -36,6 +37,7 @@ const schema = z
     const total = v.items.reduce((s, i) => s + i.quantity, 0);
     if (total > 20) ctx.addIssue({ code: "custom", message: "Zu viele Tickets in einer Bestellung." });
     if (v.guestNames.length !== total - 1) ctx.addIssue({ code: "custom", message: "Bitte gib die Namen aller weiteren Gäste an." });
+    if (v.ageGroups.length !== total) ctx.addIssue({ code: "custom", message: "Bitte gib für jede Person das Alter am Tag des Abiballs an." });
     if (v.relation === "gast" && (!v.guestOf || v.guestOf.length < 2))
       ctx.addIssue({ code: "custom", message: "Bitte gib an, wessen Gast du bist." });
     if (new Set(v.items.map((i) => i.ticket_type_id)).size !== v.items.length)
@@ -75,6 +77,7 @@ export async function POST(req: Request) {
     p_payment_method: bank ? "ueberweisung" : "stripe",
     p_free: false,
     p_notes: null,
+    p_age_groups: input.ageGroups,
   });
   if (error || !order) {
     const message = reservationErrorMessage(error?.message ?? "");

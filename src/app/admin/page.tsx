@@ -46,6 +46,10 @@ export default async function AdminDashboard() {
         <div className="stat"><div className="v">{stats.sold}</div><div className="l">Tickets verkauft · {stats.paidOrders} Bestellungen</div></div>
         <div className="stat"><div className="v">{euro(stats.revenue)}</div><div className="l">Umsatz, davon online {euro(stats.revenueOnline)}</div></div>
         <div className="stat"><div className="v">{stats.remaining}</div><div className="l">Restplätze von {stats.capacity}</div></div>
+        <div className="stat">
+          <div className="v">{Math.max(0, EVENT.contractMinGuests - stats.sold)}</div>
+          <div className="l">fehlen bis zur Mindestpersonenzahl ({EVENT.contractMinGuests}) laut Vertrag</div>
+        </div>
         <div className="stat"><div className="v">{stats.checkedIn}</div><div className="l">Eingecheckt von {stats.sold}</div></div>
       </div>
 
@@ -77,7 +81,7 @@ export default async function AdminDashboard() {
           <table>
             <thead><tr><th>Art</th><th>Bestellungen</th><th>Tickets</th><th>Betrag</th></tr></thead>
             <tbody>
-              {(["stripe", "bar", "ueberweisung", "frei"] as const).map((m) => (
+              {(["stripe", "bar", "ueberweisung", "frei", "abendkasse"] as const).map((m) => (
                 <tr key={m}>
                   <td>{PAYMENT_LABEL[m]}</td>
                   <td>{stats.byPayment[m]?.orders ?? 0}</td>

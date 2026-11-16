@@ -2,8 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Scanner from "./Scanner";
+import AgeBadge from "./AgeBadge";
+import DoorSales from "./DoorSales";
 
-interface Guest { id: string; ticket_number: string | null; holder_name: string; ticket_type_id: string; checked_in_at: string | null; checked_in_by_label: string | null }
+interface Guest { id: string; ticket_number: string | null; holder_name: string; ticket_type_id: string; checked_in_at: string | null; checked_in_by_label: string | null; age_group?: string | null }
 
 /** Web-Scanner für Helfer mit eigenem Konto (z. B. Android oder als Ersatz zur iPhone-App). */
 export default function ScannerApp() {
@@ -12,7 +14,7 @@ export default function ScannerApp() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [tab, setTab] = useState<"scan" | "list">("scan");
+  const [tab, setTab] = useState<"scan" | "list" | "kasse">("scan");
   const [guests, setGuests] = useState<Guest[]>([]);
   const [q, setQ] = useState("");
 
@@ -97,9 +99,12 @@ export default function ScannerApp() {
         <div className="row" style={{ marginBottom: 16 }}>
           <button className={`btn small ${tab === "scan" ? "" : "ghost"}`} onClick={() => setTab("scan")}>Scannen</button>
           <button className={`btn small ${tab === "list" ? "" : "ghost"}`} onClick={() => setTab("list")}>Noch nicht da</button>
+          <button className={`btn small ${tab === "kasse" ? "" : "ghost"}`} onClick={() => setTab("kasse")}>Abendkasse</button>
         </div>
         {tab === "scan" ? (
           <Scanner checkinUrl="/api/scanner/checkin" statsUrl="/api/scanner/stats" onUnauthorized={() => setMe(null)} />
+        ) : tab === "kasse" ? (
+          <DoorSales onUnauthorized={() => setMe(null)} />
         ) : (
           <div className="form">
             <input type="search" placeholder="Name oder Nummer suchen" value={q} onChange={(e) => setQ(e.target.value)} />
@@ -110,7 +115,7 @@ export default function ScannerApp() {
                   {guests.map((g) => (
                     <tr key={g.id}>
                       <td className="ticket-no small">{g.ticket_number}</td>
-                      <td>{g.holder_name}<div className="small muted">{g.ticket_type_id === "ball" ? "Ball" : "Afterparty"}</div></td>
+                      <td>{g.holder_name}<div className="small muted">{g.ticket_type_id === "ball" ? "Ball" : "Afterparty"}</div><div style={{ marginTop: 4 }}><AgeBadge id={g.age_group} /></div></td>
                       <td style={{ textAlign: "right" }}><button className="btn small ghost" onClick={() => manual(g)}>Einlassen</button></td>
                     </tr>
                   ))}

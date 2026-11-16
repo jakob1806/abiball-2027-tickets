@@ -1,6 +1,6 @@
 import "server-only";
 import { PDFDocument, PDFFont, PDFPage, StandardFonts, rgb } from "pdf-lib";
-import { EVENT } from "./event";
+import { EVENT, VENUE_BRAND } from "./event";
 import { siteUrl } from "./env";
 import { qrPng } from "./qr";
 import { CREST_PRINT_PNG_BASE64 } from "./wallet-assets";
@@ -140,7 +140,7 @@ export async function buildTicketsPdf(
     field("Name", ticket.holder_name, { big: true });
     field("Ticket", `${type?.name ?? ticket.ticket_type_id} · Nr. ${no}`);
     field("Datum und Zeit", `${EVENT.dateLabel}, ${isBall ? "19:00" : "22:30"} bis 04:00 Uhr`);
-    field("Ort", "", { lines: [EVENT.venueName, EVENT.venueStreet, EVENT.venueCity] });
+    field("Ort", "", { lines: [EVENT.venueName, EVENT.venueStreet, `${EVENT.venueCity} · ${VENUE_BRAND.domain}`] });
     field("Enthalten", isBall ? "Buffet, Programm und Afterparty" : "Afterparty");
 
     // Rechte Spalte: QR-Code in hellem Feld
@@ -174,7 +174,7 @@ export async function buildTicketsPdf(
     const notes = [
       "Jeder QR-Code gilt für genau einen Einlass. Kopien oder Screenshots werden nach dem ersten Scan abgewiesen.",
       "Bitte einen Lichtbildausweis mitbringen. Unter 16 Jahren nur mit Begleitung, unter 18 Jahren ohne erziehungsbeauftragte Person nur bis 24 Uhr.",
-      `Anfahrt: ${EVENT.venueName}, ${EVENT.venueStreet}, ${EVENT.venueCity} – am besten mit S- oder U-Bahn bis Ostbahnhof.`,
+      `Anfahrt: ${EVENT.venueName} (${VENUE_BRAND.label} · ${VENUE_BRAND.domain}), ${EVENT.venueStreet}, ${EVENT.venueCity} – am besten mit S- oder U-Bahn bis Ostbahnhof.`,
     ];
     for (const n of notes) {
       const lines = wrap(n, sans, 9.5, width - 2 * m - 12);

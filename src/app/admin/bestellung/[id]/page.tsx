@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import AdminOrderActions from "@/components/AdminOrderActions";
 import EditOrderForm from "@/components/EditOrderForm";
+import AgeBadge from "@/components/AgeBadge";
 import TypeBadge from "@/components/TypeBadge";
 import { getOrderById, ticketTypeMap } from "@/lib/orders";
 import { dateTime, euro, PAYMENT_LABEL, relationLabel, STATUS_LABEL } from "@/lib/format";
@@ -42,6 +43,7 @@ export default async function AdminOrder({ params }: { params: { id: string } })
             tickets: order.tickets.filter((t) => t.status === "valid").map((t) => ({
               id: t.id,
               holder_name: t.holder_name,
+              age_group: t.age_group,
               code: t.ticket_number ?? t.code,
               type: types[t.ticket_type_id]?.name ?? t.ticket_type_id,
             })),
@@ -87,20 +89,21 @@ export default async function AdminOrder({ params }: { params: { id: string } })
       <h2 className="h3">Tickets</h2>
       <div className="table-wrap">
         <table>
-          <thead><tr><th>Nr.</th><th>Art</th><th>Name</th><th>Code</th><th>Status</th><th>Eingecheckt</th><th>Von</th></tr></thead>
+          <thead><tr><th>Nr.</th><th>Art</th><th>Name</th><th>Alter</th><th>Code</th><th>Status</th><th>Eingecheckt</th><th>Von</th></tr></thead>
           <tbody>
             {order.tickets.map((t) => (
               <tr key={t.id}>
                 <td className="ticket-no">{t.ticket_number ?? "–"}</td>
                 <td><TypeBadge typeId={t.ticket_type_id} name={types[t.ticket_type_id]?.name} /></td>
                 <td>{t.holder_name}</td>
+                <td><AgeBadge id={t.age_group} /></td>
                 <td className="mono small"><a href={`/ticket/${t.code}`} target="_blank">{t.code}</a></td>
                 <td>{t.status === "valid" ? <span className="badge ok">Gültig</span> : <span className="badge bad">Storniert</span>}</td>
                 <td>{dateTime(t.checked_in_at)}</td>
                 <td className="small">{t.checked_in_by_label ?? "–"}</td>
               </tr>
             ))}
-            {order.tickets.length === 0 && <tr><td colSpan={7} className="muted">Noch keine Tickets (erst nach Zahlung).</td></tr>}
+            {order.tickets.length === 0 && <tr><td colSpan={8} className="muted">Noch keine Tickets (erst nach Zahlung).</td></tr>}
           </tbody>
         </table>
       </div>

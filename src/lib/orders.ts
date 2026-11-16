@@ -90,5 +90,6 @@ export function reservationErrorMessage(message: string): string {
   if (message.includes("EMPTY_ORDER")) return "Bitte wähle mindestens ein Ticket.";
   if (message.includes("SALES_CLOSED")) return "Der Ticketverkauf ist derzeit geschlossen.";
   if (message.includes("UNKNOWN_TICKET_TYPE")) return "Diese Ticketart ist nicht verfügbar.";
+  if (message.includes("AGE_GROUPS")) return "Bitte gib für jedes Ticket das Alter am Tag des Abiballs an.";
   return "Die Reservierung ist fehlgeschlagen. Bitte versuche es erneut.";
 }

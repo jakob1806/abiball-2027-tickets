@@ -2,6 +2,7 @@ import Link from "next/link";
 import PrintButton from "@/components/PrintButton";
 import TypeBadge from "@/components/TypeBadge";
 import GuestCheckbox from "@/components/GuestCheckbox";
+import AgeBadge from "@/components/AgeBadge";
 import { getGuestList } from "@/lib/admin-data";
 import { ticketTypeMap } from "@/lib/orders";
 import { dateTime } from "@/lib/format";
@@ -84,13 +85,14 @@ export default async function GuestList({ searchParams }: { searchParams: { ansi
       {view === "tickets" ? (
         <div className="table-wrap" style={{ marginTop: 16 }}>
           <table>
-            <thead><tr><th style={{ width: 36 }}>✓</th><th>Nr.</th><th>Name</th><th>Ticket</th><th>Bestellt von</th><th>Eingecheckt</th><th>Eingelassen von</th></tr></thead>
+            <thead><tr><th style={{ width: 36 }}>✓</th><th>Nr.</th><th>Name</th><th>Alter</th><th>Ticket</th><th>Bestellt von</th><th>Eingecheckt</th><th>Eingelassen von</th></tr></thead>
             <tbody>
               {rows.map((r) => (
                 <tr key={r.id}>
                   <td><GuestCheckbox ticketId={r.id} initial={r.checked_in_at} name={r.holder_name} /></td>
                   <td className="ticket-no">{r.ticket_number ?? "–"}</td>
                   <td><strong>{r.holder_name}</strong></td>
+                  <td><AgeBadge id={r.age_group} /></td>
                   <td><TypeBadge typeId={r.ticket_type_id} name={types[r.ticket_type_id]?.name} /></td>
                   <td>
                     <Link href={`/admin/bestellung/${r.orders.id}`}>{r.orders.buyer_name}</Link>
@@ -100,7 +102,7 @@ export default async function GuestList({ searchParams }: { searchParams: { ansi
                   <td className="small">{r.checked_in_by_label ?? (r.checked_in_at ? "–" : "")}</td>
                 </tr>
               ))}
-              {rows.length === 0 && <tr><td colSpan={7} className="muted">Keine Tickets.</td></tr>}
+              {rows.length === 0 && <tr><td colSpan={8} className="muted">Keine Tickets.</td></tr>}
             </tbody>
           </table>
         </div>
@@ -118,6 +120,7 @@ export default async function GuestList({ searchParams }: { searchParams: { ansi
                     <tr key={r.id}>
                       <td className="ticket-no small">{r.ticket_number}</td>
                       <td>{r.holder_name}</td>
+                      <td><AgeBadge id={r.age_group} /></td>
                       <td className="small"><TypeBadge typeId={r.ticket_type_id} name={types[r.ticket_type_id]?.name} /></td>
                       <td className="small" style={{ width: 36 }}><GuestCheckbox ticketId={r.id} initial={r.checked_in_at} name={r.holder_name} /></td>
                     </tr>

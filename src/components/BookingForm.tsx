@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { YOUTH_PROTECTION_TEXT } from "@/lib/event";
+import AgeSelect, { AGE_HINT, MINOR_HINT } from "./AgeSelect";
 
 export interface BookableType {
   id: string;
@@ -23,6 +24,8 @@ export default function BookingForm({ types, maxPerOrder, salesOpen, preview = f
   const [relation, setRelation] = useState<"abiturient" | "gast">("abiturient");
   const [guestOf, setGuestOf] = useState("");
   const [guests, setGuests] = useState<string[]>([]);
+  // Index 0 = Besteller/in, danach die Gäste in derselben Reihenfolge
+  const [ages, setAges] = useState<string[]>([]);
   const [youth, setYouth] = useState(false);
   const [terms, setTerms] = useState(false);
   const [payment, setPayment] = useState<"card" | "transfer">("card");
@@ -32,6 +35,16 @@ export default function BookingForm({ types, maxPerOrder, salesOpen, preview = f
   const total = useMemo(() => Object.values(qty).reduce((a, b) => a + b, 0), [qty]);
   const sum = useMemo(() => types.reduce((s, t) => s + t.price_cents * (qty[t.id] ?? 0), 0), [qty, types]);
   const guestCount = Math.max(0, total - 1);
+  const agesForOrder = Array.from({ length: total }, (_, i) => ages[i] ?? "");
+  const hasMinor = agesForOrder.some((a) => a === "u16" || a === "u18");
+
+  function setAge(i: number, v: string) {
+    setAges((a) => {
+      const n = [...a];
+      n[i] = v;
+      return n;
+    });
+  }
 
   function change(id: string, delta: number) {
     setQty((q) => {
@@ -47,6 +60,7 @@ export default function BookingForm({ types, maxPerOrder, salesOpen, preview = f
     e.preventDefault();
     setError(null);
     if (total === 0) return setError("Bitte wähle mindestens ein Ticket.");
+    if (agesForOrder.some((a) => !a)) return setError("Bitte gib für jede Person das Alter am Tag des Abiballs an.");
     if (preview) return setError("Vorschau: Buchen ist erst nach der Einrichtung von Supabase und Stripe möglich.");
     setBusy(true);
     try {
@@ -60,6 +74,7 @@ export default function BookingForm({ types, maxPerOrder, salesOpen, preview = f
           relation,
           guestOf: relation === "gast" ? guestOf : null,
           guestNames: guests.slice(0, guestCount).map((g) => g.trim()),
+          ageGroups: agesForOrder,
           youthProtection: youth,
           terms,
           paymentMethod: transferDays && payment === "transfer" ? "ueberweisung" : "stripe",
@@ -120,6 +135,11 @@ export default function BookingForm({ types, maxPerOrder, salesOpen, preview = f
             </label>
           </div>
 
+          <div className="grid-2">
+            <AgeSelect label="Dein Alter am 25. Juni 2027" value={agesForOrder[0] ?? ""} onChange={(v) => setAge(0, v)} />
+          </div>
+          <p className="small muted" style={{ margin: 0 }}>{AGE_HINT}</p>
+
           <div className="choice" role="radiogroup" aria-label="Ich bin">
             <label>
               <input type="radio" name="relation" checked={relation === "abiturient"} onChange={() => setRelation("abiturient")} />
@@ -139,10 +159,10 @@ export default function BookingForm({ types, maxPerOrder, salesOpen, preview = f
 
           {guestCount > 0 && (
             <div className="form" style={{ gap: 12 }}>
-              <div className="small muted">Namen der weiteren Gäste (für die Tickets)</div>
-              <div className="grid-2">
-                {Array.from({ length: guestCount }).map((_, i) => (
-                  <label className="field" key={i}>
+              <div className="small muted">Namen und Alter der weiteren Gäste (für die Tickets)</div>
+              {Array.from({ length: guestCount }).map((_, i) => (
+                <div className="grid-2" key={i}>
+                  <label className="field">
                     Gast {i + 2}: Vor- und Nachname
                     <input
                       type="text"
@@ -156,10 +176,13 @@ export default function BookingForm({ types, maxPerOrder, salesOpen, preview = f
                       })}
                     />
                   </label>
-                ))}
-              </div>
+                  <AgeSelect label={`Alter von Gast ${i + 2}`} value={agesForOrder[i + 1] ?? ""} onChange={(v) => setAge(i + 1, v)} />
+                </div>
+              ))}
             </div>
           )}
+
+          {hasMinor && <div className="note">{MINOR_HINT}</div>}
 
           <label className="check">
             <input type="checkbox" required checked={youth} onChange={(e) => setYouth(e.target.checked)} />

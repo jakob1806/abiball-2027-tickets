@@ -85,7 +85,7 @@ export async function getStats() {
 export async function getGuestList() {
   const { data, error } = await db()
     .from("tickets")
-    .select("id, code, ticket_number, holder_name, ticket_type_id, checked_in_at, checked_in_by_label, orders!inner(id, buyer_name, email, relation, guest_of, status)")
+    .select("id, code, ticket_number, holder_name, age_group, ticket_type_id, checked_in_at, checked_in_by_label, orders!inner(id, buyer_name, email, relation, guest_of, status)")
     .eq("status", "valid")
     .eq("orders.status", "paid");
   if (error) throw error;
@@ -94,6 +94,7 @@ export async function getGuestList() {
     code: string;
     ticket_number: string | null;
     holder_name: string;
+    age_group: string | null;
     ticket_type_id: string;
     checked_in_at: string | null;
     checked_in_by_label: string | null;

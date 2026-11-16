@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { AGE_GROUPS } from "@/lib/event";
 
 interface Props {
   orderId: string;
@@ -11,7 +12,7 @@ interface Props {
     relation: "abiturient" | "gast";
     guest_of: string | null;
     notes: string | null;
-    tickets: { id: string; holder_name: string; code: string; type: string }[];
+    tickets: { id: string; holder_name: string; age_group: string | null; code: string; type: string }[];
   };
 }
 
@@ -39,7 +40,7 @@ export default function EditOrderForm({ orderId, initial }: Props) {
         relation: v.relation,
         guest_of: v.relation === "gast" ? v.guest_of : null,
         notes: v.notes,
-        tickets: v.tickets.map((t) => ({ id: t.id, holder_name: t.holder_name })),
+        tickets: v.tickets.map((t) => ({ id: t.id, holder_name: t.holder_name, age_group: t.age_group || null })),
       }),
     });
     const data = await res.json().catch(() => ({}));
@@ -69,17 +70,29 @@ export default function EditOrderForm({ orderId, initial }: Props) {
       </div>
       {v.tickets.length > 0 && (
         <div className="form" style={{ gap: 12 }}>
-          <div className="small muted">Namen auf den Tickets</div>
+          <div className="small muted">Namen und Alter auf den Tickets</div>
           {v.tickets.map((t, i) => (
-            <label className="field" key={t.id}>
-              {t.type} · <span className="mono">{t.code}</span>
-              <input
-                type="text"
-                required
-                value={t.holder_name}
-                onChange={(e) => setV({ ...v, tickets: v.tickets.map((x, j) => (j === i ? { ...x, holder_name: e.target.value } : x)) })}
-              />
-            </label>
+            <div className="grid-2" key={t.id}>
+              <label className="field">
+                {t.type} · <span className="mono">{t.code}</span>
+                <input
+                  type="text"
+                  required
+                  value={t.holder_name}
+                  onChange={(e) => setV({ ...v, tickets: v.tickets.map((x, j) => (j === i ? { ...x, holder_name: e.target.value } : x)) })}
+                />
+              </label>
+              <label className="field">
+                Alter am Abiball
+                <select
+                  value={t.age_group ?? ""}
+                  onChange={(e) => setV({ ...v, tickets: v.tickets.map((x, j) => (j === i ? { ...x, age_group: e.target.value || null } : x)) })}
+                >
+                  <option value="">nicht angegeben</option>
+                  {AGE_GROUPS.map((a) => <option key={a.id} value={a.id}>{a.label} ({a.wristband})</option>)}
+                </select>
+              </label>
+            </div>
           ))}
         </div>
       )}
