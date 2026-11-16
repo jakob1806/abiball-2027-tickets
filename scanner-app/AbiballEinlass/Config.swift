@@ -8,4 +8,9 @@ enum Config {
     static let debounceSeconds: TimeInterval = 4
     /// Abstand der automatischen Aktualisierung der Zahlen.
     static let statsInterval: TimeInterval = 15
+
+    static var version: String {
+        let i = Bundle.main.infoDictionary
+        return "\(i?["CFBundleShortVersionString"] as? String ?? "?") (\(i?["CFBundleVersion"] as? String ?? "?"))"
+    }
 }

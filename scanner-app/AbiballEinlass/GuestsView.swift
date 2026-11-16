@@ -24,10 +24,11 @@ struct GuestsView: View {
             }
             if let lastResult {
                 Section {
-                    ResultCard(result: lastResult)
-                        .listRowInsets(EdgeInsets())
-                        .listRowBackground(Color.clear)
-                        .onTapGesture { withAnimation { self.lastResult = nil } }
+                    ResultCard(result: lastResult, onDismiss: { withAnimation { self.lastResult = nil } }, onRetry: {
+                        if case .failure(_, .ticket(let id)) = lastResult, let g = guests.first(where: { $0.id == id }) { checkin(g) }
+                    })
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
                 }
             }
             Section {
@@ -53,16 +54,16 @@ struct GuestsView: View {
             guard !Task.isCancelled else { return }
             await load()
         }
-        .confirmationDialog(
-            confirmGuest.map { "\($0.holder_name) einlassen?" } ?? "",
-            isPresented: Binding(get: { confirmGuest != nil }, set: { if !$0 { confirmGuest = nil } }),
-            titleVisibility: .visible,
-            presenting: confirmGuest
-        ) { g in
-            Button("Einlassen") { checkin(g) }
-            Button("Abbrechen", role: .cancel) {}
-        } message: { g in
-            Text("\(g.ticket_number ?? "Ticket") · \(TicketKind(g.ticket_type_id) == .afterparty ? "Nur Afterparty – Einlass ab 22:30 Uhr" : "Ball")")
+        .sheet(item: $confirmGuest) { g in
+            ConfirmSheet(guest: g) {
+                confirmGuest = nil
+                checkin(g)
+            } onCancel: {
+                confirmGuest = nil
+            }
+            .presentationDetents([.height(340)])
+            .presentationCornerRadius(28)
+            .presentationBackground(Color.white)
         }
     }
 
@@ -123,5 +124,38 @@ struct GuestsView: View {
             await load()
             await model.refreshStats()
         }
+    }
+}
+
+/// Bestätigung vor dem manuellen Einlass aus der Liste.
+struct ConfirmSheet: View {
+    let guest: Guest
+    let onConfirm: () -> Void
+    let onCancel: () -> Void
+
+    var body: some View {
+        VStack(spacing: 18) {
+            Text("Einlassen?").font(.subheadline.weight(.semibold)).foregroundStyle(.secondary)
+                .padding(.top, 24)
+            VStack(spacing: 10) {
+                Text(guest.holder_name).font(.system(size: 26, weight: .bold)).multilineTextAlignment(.center)
+                HStack(spacing: 8) {
+                    Text(guest.ticket_number ?? "–").font(.headline.monospacedDigit())
+                    TicketBadge(typeId: guest.ticket_type_id, name: nil)
+                }
+                if TicketKind(guest.ticket_type_id) == .afterparty {
+                    Text("Nur Afterparty – Einlass ab 22:30 Uhr")
+                        .font(.subheadline.weight(.semibold))
+                        .padding(.horizontal, 12).padding(.vertical, 6)
+                        .background(Capsule().fill(Color(white: 0.93)))
+                }
+            }
+            Spacer(minLength: 0)
+            VStack(spacing: 10) {
+                Button("Einlassen", action: onConfirm).buttonStyle(BlackButtonStyle())
+                Button("Abbrechen", action: onCancel).buttonStyle(BlackButtonStyle(inverted: true))
+            }
+        }
+        .padding(.horizontal, 24).padding(.bottom, 12)
     }
 }

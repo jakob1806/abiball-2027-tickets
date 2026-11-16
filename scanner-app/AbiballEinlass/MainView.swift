@@ -39,8 +39,14 @@ struct AccountMenu: View {
 
     var body: some View {
         Menu {
-            Section("Angemeldet als \(model.name)") {
+            Section("Angemeldet als \(model.name) · Version \(Config.version)") {
                 Toggle(isOn: $soundOn) { Label("Ton bei Scan", systemImage: "speaker.wave.2") }
+                Link(destination: Config.baseURL.appendingPathComponent("datenschutz")) {
+                    Label("Datenschutz", systemImage: "hand.raised")
+                }
+                Link(destination: Config.baseURL.appendingPathComponent("impressum")) {
+                    Label("Impressum", systemImage: "info.circle")
+                }
                 Button(role: .destructive) { confirmLogout = true } label: {
                     Label("Abmelden", systemImage: "rectangle.portrait.and.arrow.right")
                 }

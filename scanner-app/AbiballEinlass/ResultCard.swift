@@ -3,6 +3,8 @@ import SwiftUI
 /// Großes, farbiges Scan-Ergebnis.
 struct ResultCard: View {
     let result: ScanOutcome
+    var onDismiss: (() -> Void)? = nil
+    var onRetry: (() -> Void)? = nil
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -41,14 +43,29 @@ struct ResultCard: View {
                 }
             case .failure(let msg, _):
                 Text(msg).font(.headline)
-                Text("Tippen, um es erneut zu versuchen.").font(.subheadline).opacity(0.85)
             }
+            actionButton
+                .padding(.top, 4)
         }
         .foregroundStyle(.white)
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(20)
         .background(RoundedRectangle(cornerRadius: 22).fill(color))
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .contain)
+    }
+
+    @ViewBuilder private var actionButton: some View {
+        if case .failure = result, let onRetry {
+            Button(action: onRetry) {
+                Label("Erneut versuchen", systemImage: "arrow.clockwise")
+            }
+            .buttonStyle(CardButtonStyle())
+        } else if let onDismiss {
+            Button(action: onDismiss) {
+                Text(status == "ok" ? "Weiter scannen" : "Verstanden")
+            }
+            .buttonStyle(CardButtonStyle())
+        }
     }
 
     private var status: String {
@@ -101,4 +118,17 @@ enum ScanOutcome: Equatable {
 enum CheckinRequest: Equatable {
     case code(String)
     case ticket(String)
+}
+
+/// Weißer runder Button auf der farbigen Ergebniskarte.
+struct CardButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.headline)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 13)
+            .foregroundStyle(.black)
+            .background(Capsule().fill(.white))
+            .opacity(configuration.isPressed ? 0.75 : 1)
+    }
 }

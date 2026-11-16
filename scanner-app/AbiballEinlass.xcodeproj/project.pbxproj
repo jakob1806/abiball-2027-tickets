@@ -15,6 +15,7 @@
 		5B297F96F482387F6FD4154D /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9660155B0118D4D0554C34D /* Config.swift */; };
 		5BDFAF43833D9340BC4AE9F0 /* Keychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CF05835F27F30C4EC64C500 /* Keychain.swift */; };
 		78D747F5873C8A44865DD25C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 04053E421171E0D0EB92278D /* Assets.xcassets */; };
+		7F601C630731E366DEA4FA51 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 0BE94DF6AA2DA54534DE9190 /* PrivacyInfo.xcprivacy */; };
 		A8B2191018544AC8DF0094F9 /* GuestsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80919F5D3AD0AD683057A4B2 /* GuestsView.swift */; };
 		B1CBEF33723368A0EF6D5C14 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63AAAD0398CF46745E3DF10E /* AppModel.swift */; };
 		C5DE77444F283E221185151B /* QRScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53F54121A610ADB80E45E4ED /* QRScanner.swift */; };
@@ -31,6 +32,7 @@
 		0379A36EBCD83C3024927D10 /* SchoolLogo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SchoolLogo.swift; sourceTree = "<group>"; };
 		04053E421171E0D0EB92278D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		045E0CCE1FDF9DEA13400A02 /* ResultCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultCard.swift; sourceTree = "<group>"; };
+		0BE94DF6AA2DA54534DE9190 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		0C7339319B3F159E5BFE340C /* Demo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Demo.swift; sourceTree = "<group>"; };
 		0E50521446D678E8B27A84E5 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		3CF05835F27F30C4EC64C500 /* Keychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keychain.swift; sourceTree = "<group>"; };
@@ -83,6 +85,7 @@
 				CB7C3DDE7BF70A61E5308904 /* LoginView.swift */,
 				98A8E296D25B5AE27730DEA6 /* MainView.swift */,
 				0E50521446D678E8B27A84E5 /* Models.swift */,
+				0BE94DF6AA2DA54534DE9190 /* PrivacyInfo.xcprivacy */,
 				53F54121A610ADB80E45E4ED /* QRScanner.swift */,
 				045E0CCE1FDF9DEA13400A02 /* ResultCard.swift */,
 				933FF7D8274310A23B8120F2 /* ScanView.swift */,
@@ -154,6 +157,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				78D747F5873C8A44865DD25C /* Assets.xcassets in Resources */,
+				7F601C630731E366DEA4FA51 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

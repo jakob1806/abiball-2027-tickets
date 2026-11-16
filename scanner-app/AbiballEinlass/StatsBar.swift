@@ -1,57 +1,78 @@
 import SwiftUI
 
+/// Kapazitätsanzeige: Ring mit „drin“, daneben Balken je Ticketart.
 struct StatsBar: View {
     @Environment(AppModel.self) private var model
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 9) {
+        HStack(spacing: 16) {
             if let s = model.stats {
-                HStack(alignment: .lastTextBaseline) {
-                    VStack(alignment: .leading, spacing: 0) {
-                        Text("Drin").font(.caption.weight(.semibold)).foregroundStyle(.white.opacity(0.6)).textCase(.uppercase)
-                        HStack(alignment: .lastTextBaseline, spacing: 6) {
-                            Text("\(s.inside)").font(.system(size: 28, weight: .bold).monospacedDigit())
-                            Text("/ \(s.sold)").font(.system(size: 15, weight: .semibold).monospacedDigit()).foregroundStyle(.white.opacity(0.6))
-                        }
-                    }
-                    Spacer()
-                    VStack(alignment: .trailing, spacing: 2) {
+                ring(s)
+                VStack(alignment: .leading, spacing: 9) {
+                    ForEach(s.perType) { t in typeRow(t) }
+                    HStack(spacing: 6) {
+                        Text("\(s.missing) fehlen")
+                        Text("·").foregroundStyle(.tertiary)
+                        Text("Kapazität \(s.capacity)")
                         if model.statsError {
-                            Label("offline", systemImage: "wifi.exclamationmark").font(.caption.weight(.bold)).foregroundStyle(.orange)
+                            Image(systemName: "wifi.exclamationmark").foregroundStyle(.orange)
+                                .accessibilityLabel("Zahlen nicht aktuell")
                         }
-                        Text("\(s.missing) fehlen").font(.footnote.weight(.semibold))
-                        Text("Kapazität \(s.capacity)").font(.caption).foregroundStyle(.white.opacity(0.6))
                     }
-                }
-                GeometryReader { geo in
-                    let w = geo.size.width
-                    let cap = Double(max(s.capacity, 1))
-                    ZStack(alignment: .leading) {
-                        Capsule().fill(Color.white.opacity(0.15))
-                        Capsule().fill(Color.white.opacity(0.35)).frame(width: w * min(1, Double(s.sold) / cap))
-                        Capsule().fill(Color.white).frame(width: w * min(1, Double(s.inside) / cap))
-                    }
-                }
-                .frame(height: 4)
-                HStack(spacing: 8) {
-                    ForEach(s.perType) { t in
-                        HStack(spacing: 8) {
-                            TicketBadge(typeId: t.id, name: t.name, onColor: true)
-                            Text("\(t.inside)/\(t.sold)").font(.footnote.monospacedDigit().weight(.semibold))
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    }
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(.secondary)
                 }
             } else {
-                HStack(spacing: 10) {
-                    ProgressView().tint(.white)
-                    Text(model.statsError ? "Zahlen nicht erreichbar" : "Lade Zahlen …").font(.subheadline)
-                }
-                .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                ProgressView()
+                Text(model.statsError ? "Zahlen nicht erreichbar" : "Lade Zahlen …")
+                    .font(.subheadline).foregroundStyle(.secondary)
+                Spacer()
             }
         }
-        .foregroundStyle(.white)
-        .padding(.horizontal, 14).padding(.vertical, 11)
-        .background(RoundedRectangle(cornerRadius: 18).fill(Color.black))
+        .frame(minHeight: 78)
+        .padding(.horizontal, 14).padding(.vertical, 12)
+        .background(RoundedRectangle(cornerRadius: 20).fill(Color.white))
+        .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color.black.opacity(0.08)))
+        .shadow(color: .black.opacity(0.05), radius: 10, y: 4)
+    }
+
+    private func ring(_ s: Stats) -> some View {
+        let frac = s.sold > 0 ? Double(s.inside) / Double(s.sold) : 0
+        return ZStack {
+            Circle().stroke(Color.black.opacity(0.08), lineWidth: 7)
+            Circle().trim(from: 0, to: min(1, frac))
+                .stroke(Color.black, style: StrokeStyle(lineWidth: 7, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+                .animation(.easeOut(duration: 0.4), value: frac)
+            VStack(spacing: -2) {
+                Text("\(s.inside)").font(.system(size: 22, weight: .bold).monospacedDigit())
+                    .minimumScaleFactor(0.6)
+                Text("von \(s.sold)").font(.system(size: 10, weight: .medium)).foregroundStyle(.secondary)
+            }
+            .padding(.horizontal, 8)
+        }
+        .frame(width: 76, height: 76)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(s.inside) von \(s.sold) drin")
+    }
+
+    private func typeRow(_ t: Stats.PerType) -> some View {
+        let isAP = TicketKind(t.id) == .afterparty
+        let frac = t.sold > 0 ? Double(t.inside) / Double(t.sold) : 0
+        return VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                Text(t.name).font(.subheadline.weight(.semibold))
+                Spacer()
+                Text("\(t.inside) / \(t.sold)").font(.subheadline.monospacedDigit()).foregroundStyle(.secondary)
+            }
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    Capsule().fill(Color.black.opacity(0.07))
+                    Capsule().fill(isAP ? Color(white: 0.45) : Color.black)
+                        .frame(width: max(0, geo.size.width * min(1, frac)))
+                }
+            }
+            .frame(height: 5)
+        }
     }
 }

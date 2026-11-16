@@ -113,21 +113,25 @@ struct ScanView: View {
 
     @ViewBuilder private var resultArea: some View {
         if let outcome {
-            ResultCard(result: outcome)
-                .id(resultID)
-                .transition(.scale(scale: 0.96).combined(with: .opacity))
-                .onTapGesture {
-                    if case .failure(_, let retry) = outcome { send(retry) } else { withAnimation { self.outcome = nil } }
-                }
+            ResultCard(
+                result: outcome,
+                onDismiss: { withAnimation { self.outcome = nil } },
+                onRetry: { if case .failure(_, let retry) = outcome { send(retry) } }
+            )
+            .id(resultID)
+            .transition(.scale(scale: 0.96).combined(with: .opacity))
         } else {
-            VStack(spacing: 6) {
-                Image(systemName: "qrcode").font(.system(size: 34))
-                Text("QR-Code in den Rahmen halten").font(.headline)
+            HStack(spacing: 12) {
+                Image(systemName: "qrcode.viewfinder").font(.system(size: 26, weight: .medium))
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Bereit zum Scannen").font(.headline).foregroundStyle(.primary)
+                    Text("QR-Code in den Rahmen halten").font(.subheadline)
+                }
+                Spacer(minLength: 0)
             }
             .foregroundStyle(.secondary)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 22)
-            .background(RoundedRectangle(cornerRadius: 22).strokeBorder(Color(.separator), style: StrokeStyle(lineWidth: 1.5, dash: [6, 5])))
+            .padding(16)
+            .background(RoundedRectangle(cornerRadius: 20).fill(Color(white: 0.96)))
         }
     }
 

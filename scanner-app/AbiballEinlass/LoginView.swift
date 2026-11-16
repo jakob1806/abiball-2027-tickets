@@ -68,9 +68,17 @@ struct LoginView: View {
                 .disabled(busy)
                 .padding(.top, 20)
 
-                Text("Zugangsdaten bekommst du vom Abiball-Team.")
+                Text("Nur für das Einlass-Team des Abiballs. Zugangsdaten bekommst du vom Abiball-Team.")
                     .font(.footnote).foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
                     .padding(.top, 16)
+                HStack(spacing: 16) {
+                    Link("Datenschutz", destination: Config.baseURL.appendingPathComponent("datenschutz"))
+                    Link("Impressum", destination: Config.baseURL.appendingPathComponent("impressum"))
+                }
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(.black)
+                .padding(.top, 24)
             }
             .padding(.horizontal, 28)
             .frame(maxWidth: 480)

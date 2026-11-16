@@ -110,6 +110,15 @@ export default function Datenschutz() {
         Interesse ist die Verhinderung von Mehrfachnutzung). Am Einlass kann ein Ausweis verlangt werden, um das Alter für
         den Jugendschutz zu prüfen; den Ausweis speichern wir nicht.
       </p>
+      <p>
+        <strong>Einlass-App „Abiball Einlass“ (iOS) und Web-Scanner:</strong> Diese werden nur vom Einlass-Team genutzt.
+        Zur Anmeldung vergeben wir persönliche Zugangsdaten (Name, Benutzername, Passwort – gehasht und verschlüsselt gespeichert). Nach
+        der Anmeldung liegt ein Anmelde-Token sicher im Schlüsselbund des Geräts. Bei jedem Scan speichern wir, welches
+        Konto das Ticket wann eingelassen hat, damit Rückfragen am Einlass geklärt werden können (Art. 6 Abs. 1 lit. f
+        DSGVO). Die Kamera wird nur zum Erkennen der QR-Codes verwendet; Bilder werden weder gespeichert noch übertragen.
+        Die App enthält keine Werbung, kein Tracking und keine Analyse-Dienste. Die Konten löschen wir nach der
+        Veranstaltung.
+      </p>
 
       <h2>9. Fotos und Videos auf der Veranstaltung</h2>
       <p>
