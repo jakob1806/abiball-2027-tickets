@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// Kontaktkarte im Stil der aktuellen iOS-Kontakte-App (blauer Verlauf, Glas-Elemente).
+/// Kontaktkarte mit den Apple-Bausteinen der Kontakte-App:
+/// iOS 26 Liquid Glass (glassEffect, GlassEffectContainer, .glass-Buttons), davor System-Material.
 struct ContactView: View {
     @Environment(\.openURL) private var openURL
     @Environment(\.dismiss) private var dismiss
@@ -11,124 +12,143 @@ struct ContactView: View {
     private var whatsapp: String { "https://wa.me/\(C.phone.filter(\.isNumber))" }
 
     var body: some View {
-        ZStack {
+        ScrollView {
+            VStack(spacing: 0) {
+                Text(initials)
+                    .font(.system(size: 88, weight: .regular, design: .rounded))
+                    .foregroundStyle(.white)
+                    .frame(width: 200, height: 200)
+                    .glassCircle()
+                    .padding(.top, 24)
+                    .accessibilityHidden(true)
+
+                Text(C.name)
+                    .font(.title.bold())
+                    .foregroundStyle(.white)
+                    .padding(.top, 20)
+
+                GlassGroup {
+                    HStack(spacing: 12) {
+                        actionButton("message.fill", "SMS") { open("sms:\(C.phone)") }
+                        actionButton("phone.fill", "Anrufen") { open("tel:\(C.phone)") }
+                        actionButton("bubble.left.and.text.bubble.right.fill", "WhatsApp") { open(whatsapp) }
+                    }
+                }
+                .padding(.top, 18)
+
+                VStack(spacing: 12) {
+                    GlassCard {
+                        row("Mobil", C.phoneDisplay, icon: "phone.fill") { open("tel:\(C.phone)") }
+                    }
+                    GlassCard {
+                        row("SMS", "Nachricht senden", icon: "message.fill") { open("sms:\(C.phone)") }
+                        Divider().overlay(.white.opacity(0.2)).padding(.leading, 18)
+                        row("WhatsApp", "Chat öffnen", icon: "bubble.left.and.text.bubble.right.fill") { open(whatsapp) }
+                    }
+                    GlassCard {
+                        Button { UIPasteboard.general.string = C.phoneDisplay } label: {
+                            Label("Nummer kopieren", systemImage: "doc.on.doc")
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, 18).padding(.vertical, 15)
+                                .contentShape(.rect)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .foregroundStyle(.white)
+                .padding(.top, 24)
+            }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 28)
+        }
+        .background {
             LinearGradient(colors: [Color(red: 0.24, green: 0.47, blue: 0.84), Color(red: 0.10, green: 0.17, blue: 0.50)],
                            startPoint: .top, endPoint: .bottom)
                 .ignoresSafeArea()
-
-            ScrollView {
-                VStack(spacing: 0) {
-                    // Glas-Kreis mit Initialen
-                    ZStack {
-                        Circle().fill(.white.opacity(0.08))
-                        Circle().strokeBorder(
-                            LinearGradient(colors: [.white.opacity(0.55), .white.opacity(0.05), .white.opacity(0.35)],
-                                           startPoint: .top, endPoint: .bottom),
-                            lineWidth: 1.5)
-                        Text(initials)
-                            .font(.system(size: 92, weight: .regular, design: .rounded))
-                            .foregroundStyle(.white.opacity(0.92))
-                    }
-                    .frame(width: 200, height: 200)
-                    .shadow(color: .black.opacity(0.15), radius: 20, y: 8)
-                    .padding(.top, 24)
-
-                    Text(C.name)
-                        .font(.system(size: 26, weight: .bold))
-                        .foregroundStyle(.white)
-                        .padding(.top, 22)
-
-                    // Runde Aktionsknöpfe
-                    HStack(spacing: 10) {
-                        circleButton("message.fill", label: "SMS") { open("sms:\(C.phone)") }
-                        circleButton("phone.fill", label: "Anrufen") { open("tel:\(C.phone)") }
-                        circleButton("bubble.left.and.text.bubble.right.fill", label: "WhatsApp") { open(whatsapp) }
-                    }
-                    .padding(.top, 18)
-
-                    // Telefon
-                    card {
-                        infoRow(label: "Mobil", value: C.phoneDisplay, icon: "phone.fill") { open("tel:\(C.phone)") }
-                    }
-                    .padding(.top, 24)
-
-                    // Nachrichten
-                    card {
-                        infoRow(label: "SMS", value: "Nachricht senden", icon: "message.fill") { open("sms:\(C.phone)") }
-                        divider
-                        infoRow(label: "WhatsApp", value: "Chat öffnen", icon: "bubble.left.and.text.bubble.right.fill") { open(whatsapp) }
-                    }
-                    .padding(.top, 12)
-
-                    card {
-                        Button { UIPasteboard.general.string = C.phoneDisplay } label: {
-                            Text("Nummer kopieren")
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.horizontal, 18).padding(.vertical, 15)
-                                .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
-                        .foregroundStyle(.white)
-                    }
-                    .padding(.top, 12)
-                }
-                .padding(.horizontal, 20)
-                .padding(.bottom, 28)
-            }
         }
         .toolbar {
             if showsDone {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Fertig") { dismiss() }.foregroundStyle(.white)
-                }
+                ToolbarItem(placement: .topBarTrailing) { Button("Fertig") { dismiss() } }
             }
         }
         .toolbarBackground(.hidden, for: .navigationBar)
+        .toolbarColorScheme(.dark, for: .navigationBar)
+        .environment(\.colorScheme, .dark)
         .navigationBarTitleDisplayMode(.inline)
-        .preferredColorScheme(.dark)
     }
 
-    private func circleButton(_ icon: String, label: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
+    @ViewBuilder
+    private func actionButton(_ icon: String, _ label: String, action: @escaping () -> Void) -> some View {
+        let button = Button(action: action) {
             Image(systemName: icon)
                 .font(.system(size: 22, weight: .medium))
-                .foregroundStyle(.white)
-                .frame(width: 64, height: 64)
-                .background(Circle().fill(.white.opacity(0.12)))
-                .overlay(Circle().strokeBorder(.white.opacity(0.22), lineWidth: 1))
+                .frame(width: 44, height: 44)
         }
-        .buttonStyle(.plain)
+        .buttonBorderShape(.circle)
+        .controlSize(.large)
+        .tint(.white)
         .accessibilityLabel("\(label): \(C.name)")
+
+        if #available(iOS 26.0, *) {
+            button.buttonStyle(.glass)
+        } else {
+            button.buttonStyle(.bordered)
+        }
     }
 
-    private func card<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
-        VStack(spacing: 0, content: content)
-            .background(RoundedRectangle(cornerRadius: 24).fill(.white.opacity(0.10)))
-            .overlay(RoundedRectangle(cornerRadius: 24).strokeBorder(.white.opacity(0.10), lineWidth: 1))
-    }
-
-    private var divider: some View {
-        Rectangle().fill(.white.opacity(0.15)).frame(height: 1).padding(.horizontal, 18)
-    }
-
-    private func infoRow(label: String, value: String, icon: String, action: @escaping () -> Void) -> some View {
+    private func row(_ label: String, _ value: String, icon: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(label).font(.subheadline).foregroundStyle(.white.opacity(0.7))
-                    Text(value).font(.title3).foregroundStyle(.white)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(label).font(.subheadline).foregroundStyle(.secondary)
+                    Text(value).font(.title3)
                 }
                 Spacer()
-                Image(systemName: icon).font(.system(size: 16)).foregroundStyle(.white.opacity(0.85))
+                Image(systemName: icon).foregroundStyle(.secondary)
             }
-            .padding(.horizontal, 18).padding(.vertical, 13)
-            .contentShape(Rectangle())
+            .padding(.horizontal, 18).padding(.vertical, 12)
+            .contentShape(.rect)
         }
         .buttonStyle(.plain)
     }
 
     private func open(_ s: String) {
         if let u = URL(string: s) { openURL(u) }
+    }
+}
+
+/// Liquid-Glass-Karte (iOS 26), sonst System-Material.
+private struct GlassCard<Content: View>: View {
+    @ViewBuilder var content: Content
+    var body: some View {
+        let stack = VStack(spacing: 0) { content }
+        if #available(iOS 26.0, *) {
+            stack.glassEffect(.regular, in: .rect(cornerRadius: 26))
+        } else {
+            stack.background(.ultraThinMaterial, in: .rect(cornerRadius: 26))
+        }
+    }
+}
+
+/// Gruppiert Glas-Elemente, damit sie wie in Apples Apps zusammen verschmelzen.
+private struct GlassGroup<Content: View>: View {
+    @ViewBuilder var content: Content
+    var body: some View {
+        if #available(iOS 26.0, *) {
+            GlassEffectContainer(spacing: 12) { content }
+        } else {
+            content
+        }
+    }
+}
+
+private extension View {
+    @ViewBuilder func glassCircle() -> some View {
+        if #available(iOS 26.0, *) {
+            glassEffect(.regular, in: .circle)
+        } else {
+            background(.ultraThinMaterial, in: .circle)
+        }
     }
 }
 
