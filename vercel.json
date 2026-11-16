@@ -1,3 +1,14 @@
 {
-  "crons": [{ "path": "/api/cron/mail-queue", "schedule": "15 6 * * *" }]
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "crons": [
+    {
+      "path": "/api/cron/mail-queue",
+      "schedule": "15 6 * * *"
+    }
+  ],
+  "git": {
+    "deploymentEnabled": {
+      "main": false
+    }
+  }
 }

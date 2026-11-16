@@ -1,37 +1,129 @@
-# Spielt neue Datenbank-Migrationen (supabase/migrations) automatisch in die Produktions-Datenbank ein.
+# Prüft jeden Pull Request und veröffentlicht main in der richtigen Reihenfolge:
 #
-# Benötigt das Repository-Secret SUPABASE_DB_URL:
-#   Supabase → Project Settings → Database → Connection string → „Session pooler“ (URI),
-#   Passwort eingesetzt und URL-kodiert, z. B.
-#   postgresql://postgres.<ref>:<passwort>@aws-0-eu-central-1.pooler.supabase.com:5432/postgres
+#   1. Prüfungen: TypeScript, Lint, Build + alle Migrationen in einer leeren Testdatenbank mit Rauchtest
+#   2. Datenbank: neue Migrationen (supabase/migrations) in die Produktions-Datenbank einspielen
+#   3. Website: erst danach Vercel-Deploy über einen Deploy Hook
 #
-# Pull Requests: Probelauf (zeigt nur, welche Migrationen fehlen würden).
-# Push auf main: Migrationen werden eingespielt.
+# So kann neuer Code nicht mehr live gehen, bevor die Datenbank bereit ist. Vercel selbst
+# veröffentlicht main deshalb nicht mehr automatisch (vercel.json → git.deploymentEnabled);
+# Vorschauen für andere Branches baut Vercel weiterhin.
+#
+# Benötigte Repository-Secrets (Settings → Secrets and variables → Actions):
+#   SUPABASE_DB_URL       Supabase → Project Settings → Database → Connection string → „Session pooler“ (URI),
+#                         Passwort eingesetzt und URL-kodiert, z. B.
+#                         postgresql://postgres.<ref>:<passwort>@aws-0-eu-central-1.pooler.supabase.com:5432/postgres
+#   VERCEL_DEPLOY_HOOK    Vercel → Projekt → Settings → Git → Deploy Hooks → Name „GitHub Actions“, Branch „main“
+#
+# Pull Requests: Prüfungen + Probelauf der Migrationen (zeigt nur, welche Migrationen fehlen würden).
+# Push auf main: Prüfungen → Migrationen einspielen → Website veröffentlichen.
 # Einmalig nach der Einrichtung: manuell starten mit „baseline“, um die bereits von Hand
 # ausgeführten Migrationen als erledigt zu markieren.
-name: Supabase-Migrationen
+name: Prüfen und veröffentlichen
 
 on:
   push:
     branches: [main]
-    paths: ["supabase/migrations/**"]
+    paths-ignore:
+      - "scanner-app/**"
+      - "**/*.md"
   pull_request:
-    paths: ["supabase/migrations/**"]
+    paths-ignore:
+      - "scanner-app/**"
   workflow_dispatch:
     inputs:
       baseline:
         description: "Versionen, die schon von Hand ausgeführt wurden (Leerzeichen-getrennt), werden nur als erledigt markiert"
         required: false
         default: ""
+      deploy:
+        description: "Website danach veröffentlichen"
+        type: boolean
+        default: true
 
-concurrency:
-  group: supabase-migrations
-  cancel-in-progress: false
+permissions:
+  contents: read
+
+env:
+  NEXT_TELEMETRY_DISABLED: "1"
 
 jobs:
-  migrate:
+  web:
+    name: Website prüfen (Typen, Lint, Build)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: TypeScript
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint
+      - name: Build
+        run: npm run build
+
+  db-test:
+    name: Migrationen testen (leere Datenbank)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: postgres
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Regeln prüfen (Namen, Reihenfolge, nichts Bestehendes verändert)
+        env:
+          # PR: Vergleich mit main; Push: Vergleich mit dem Stand vor dem Push
+          BASE_REF: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || (github.event_name == 'push' && github.event.before != '0000000000000000000000000000000000000000' && github.event.before) || '' }}
+        run: |
+          if [ -n "$BASE_REF" ] && ! git rev-parse --verify --quiet "$BASE_REF^{commit}" >/dev/null; then
+            echo "Basis $BASE_REF nicht gefunden, prüfe nur Namen und Nummern."
+            BASE_REF=""
+          fi
+          node scripts/check-migrations.mjs ${BASE_REF:+"$BASE_REF"}
+
+      - name: Alle Migrationen ausführen
+        run: |
+          psql -v ON_ERROR_STOP=1 -q -f supabase/tests/setup.sql
+          for f in supabase/migrations/*.sql; do
+            echo "::group::$f"
+            psql -v ON_ERROR_STOP=1 -q --single-transaction -f "$f"
+            echo "::endgroup::"
+          done
+
+      - name: Rauchtest (Kauf, Tickets, Einlass, Abendkasse)
+        run: psql -v ON_ERROR_STOP=1 -f supabase/tests/smoke.sql
+
+  migrate:
+    name: Datenbank (Supabase)
+    needs: [web, db-test]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
     environment: production
+    # Nie zwei Läufe gleichzeitig an der Produktions-Datenbank
+    concurrency:
+      group: supabase-migrations
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
 
@@ -76,3 +168,30 @@ jobs:
         env:
           DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: supabase db push --db-url "$DB_URL" --yes
+
+  deploy:
+    name: Website veröffentlichen (Vercel)
+    needs: migrate
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.deploy)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    concurrency:
+      group: vercel-production
+      cancel-in-progress: false
+    steps:
+      - name: Deploy Hook auslösen
+        env:
+          HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$HOOK" ]; then
+            echo "::error::Secret VERCEL_DEPLOY_HOOK fehlt. Vercel → Projekt → Settings → Git → Deploy Hooks (Branch main) anlegen und die URL als Secret eintragen."
+            exit 1
+          fi
+          curl -fsS -X POST "$HOOK" -o response.json
+          echo "Vercel hat den Deploy angenommen:"
+          cat response.json
+          {
+            echo "### Website-Deploy gestartet"
+            echo "Datenbank ist fertig, Vercel baut jetzt Commit \`${GITHUB_SHA::7}\`."
+            echo "Fortschritt: Vercel → Projekt → Deployments (markiert als Deploy Hook)."
+          } >> "$GITHUB_STEP_SUMMARY"
