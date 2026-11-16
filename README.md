@@ -208,16 +208,34 @@ npm run start      # Produktions-Server
 npm run typecheck  # TypeScript prüfen
 ```
 
-## Datenbank-Migrationen automatisch (GitHub Actions)
+## Prüfen und Veröffentlichen (GitHub Actions)
 
-`.github/workflows/supabase-migrations.yml` spielt neue Dateien in `supabase/migrations/` beim Merge auf `main`
-in die Produktions-Datenbank ein (bei Pull Requests nur Probelauf).
+`.github/workflows/supabase-migrations.yml` läuft bei jedem Pull Request und bei jedem Push auf `main`:
+
+1. **Prüfungen**: TypeScript, Lint, Build. Außerdem werden alle Migrationen in einer leeren Postgres-Datenbank
+   ausgeführt, mit Rauchtest (`supabase/tests/smoke.sql`: Kauf mit Altersgruppen, Ticketnummern, Einlass,
+   Abendkasse, Rechte). `scripts/check-migrations.mjs` prüft: eindeutige, aufsteigende Nummern, und bestehende
+   Migrationen werden nie verändert.
+2. **Datenbank**: neue Dateien in `supabase/migrations/` werden in die Produktions-Datenbank eingespielt
+   (bei Pull Requests nur Probelauf).
+3. **Website**: erst danach wird Vercel über einen Deploy Hook angestoßen. Vercel veröffentlicht `main` nicht mehr
+   selbst (`vercel.json`), damit neuer Code nie vor der Datenbank live geht. Vorschauen anderer Branches bleiben.
+
+Schlägt ein Schritt fehl, laufen die folgenden nicht. Änderungen nur an `scanner-app/` oder `*.md` lösen nichts aus.
 
 Einrichtung (einmalig):
 1. GitHub → Settings → Secrets and variables → Actions → **New repository secret** `SUPABASE_DB_URL`
    (Supabase → Project Settings → Database → Connection string → *Session pooler*, Passwort eingesetzt).
-2. Nur falls Migrationen von Hand im SQL Editor ausgeführt wurden und in der Historie fehlen
+2. Vercel → Projekt → Settings → **Git** → **Deploy Hooks**: Name „GitHub Actions“, Branch `main` → URL kopieren und
+   in GitHub als Secret **`VERCEL_DEPLOY_HOOK`** eintragen.
+3. Nur falls Migrationen von Hand im SQL Editor ausgeführt wurden und in der Historie fehlen
    („Stand anzeigen“ im Workflow-Protokoll): **Run workflow** mit „baseline“ = diese Versionen, damit sie als erledigt gelten.
+
+Regeln für Migrationen: Dateiname `JJJJMMTTHHMMSS_beschreibung.sql` mit aktuellem Datum und Uhrzeit; nie per Hand
+im SQL-Editor ausführen; so bauen, dass auch der bisherige Code damit weiterläuft (die Datenbank ist kurz vor der
+Website dran, und bei einem Vercel-Rollback bleibt sie auf dem neuen Stand).
+
+**Zurückrollen**: Vercel → Deployments → letztes funktionierendes Deployment → **Instant Rollback**.
 
 ## Bändchenfarben
 
