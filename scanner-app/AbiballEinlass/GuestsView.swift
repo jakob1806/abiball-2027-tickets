@@ -81,7 +81,7 @@ struct GuestsView: View {
                     Text(g.ticket_number ?? "–").font(.subheadline.monospacedDigit().weight(.semibold))
                     TicketBadge(typeId: g.ticket_type_id, name: nil)
                 }
-                AgeBandBadge(id: g.age_group)
+                AgeBandBadge(id: g.age_group, name: g.wristband_name, colorHex: g.wristband_color)
                 if g.checked_in_at != nil {
                     let who = g.checked_in_by_label.map { " · \($0)" } ?? ""
                     Text("Drin seit \(Fmt.time(g.checked_in_at) ?? "–")\(who)")
@@ -151,7 +151,7 @@ struct ConfirmSheet: View {
                     TicketBadge(typeId: guest.ticket_type_id, name: nil)
                 }
                 if let age = AgeGroup(guest.age_group) {
-                    AgeBandBadge(id: guest.age_group, large: true)
+                    AgeBandBadge(id: guest.age_group, name: guest.wristband_name, colorHex: guest.wristband_color, large: true)
                     if let hint = age.hint {
                         Text(hint).font(.subheadline.weight(.semibold)).multilineTextAlignment(.center)
                     }

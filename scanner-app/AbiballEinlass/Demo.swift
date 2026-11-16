@@ -21,7 +21,7 @@ enum Demo {
         }
         inside += 1
         if c.contains("AP") {
-            return .init(result: "ok", holder_name: "Jonas Afterparty", ticket_number: "A-007", ticket_type_id: "afterparty", ticket_type_name: "Afterparty", checked_in_at: nil, checked_in_by_label: nil, code: code, age_group: "u18")
+            return .init(result: "ok", holder_name: "Jonas Afterparty", ticket_number: "A-007", ticket_type_id: "afterparty", ticket_type_name: "Afterparty", checked_in_at: nil, checked_in_by_label: nil, code: code, age_group: "u18", wristband_name: "Blau", wristband_color: "#1d4ed8")
         }
         return .init(result: "ok", holder_name: "Sophie Musterfrau", ticket_number: "B-203", ticket_type_id: "ball", ticket_type_name: "Ball", checked_in_at: nil, checked_in_by_label: nil, code: code, age_group: c.contains("U16") ? "u16" : "a18")
     }

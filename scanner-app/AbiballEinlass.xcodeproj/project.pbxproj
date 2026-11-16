@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		0962879BE9DF7C2286542AC3 /* AbiballEinlassApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A33339F6C93D734F182C2C60 /* AbiballEinlassApp.swift */; };
+		1DAB64EB98F58C8F6AC7A0B7 /* StatsPill.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAEE67614EE2A6CD695035E5 /* StatsPill.swift */; };
 		32ED5BFF03CFC12221829F6B /* API.swift in Sources */ = {isa = PBXBuildFile; fileRef = 725E037491E9AD2CDD78B9BF /* API.swift */; };
 		378EA90CE0896ED97FF436E8 /* StatsBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 914994C2065905B67737C0A6 /* StatsBar.swift */; };
 		3B486772E21E3919923F1B94 /* ResultCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 045E0CCE1FDF9DEA13400A02 /* ResultCard.swift */; };
@@ -48,6 +49,7 @@
 		A33339F6C93D734F182C2C60 /* AbiballEinlassApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AbiballEinlassApp.swift; sourceTree = "<group>"; };
 		ADFFB3A3F04CA94789772D1B /* Feedback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Feedback.swift; sourceTree = "<group>"; };
 		C2E3B05EBFA8568A6B6CE252 /* Style.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Style.swift; sourceTree = "<group>"; };
+		CAEE67614EE2A6CD695035E5 /* StatsPill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsPill.swift; sourceTree = "<group>"; };
 		CB7C3DDE7BF70A61E5308904 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		CD9BB8A53EEDDAC70EDECC57 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		D37CB4ABB96B764EAF56DE1E /* ContactView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactView.swift; sourceTree = "<group>"; };
@@ -94,6 +96,7 @@
 				933FF7D8274310A23B8120F2 /* ScanView.swift */,
 				0379A36EBCD83C3024927D10 /* SchoolLogo.swift */,
 				914994C2065905B67737C0A6 /* StatsBar.swift */,
+				CAEE67614EE2A6CD695035E5 /* StatsPill.swift */,
 				C2E3B05EBFA8568A6B6CE252 /* Style.swift */,
 			);
 			path = AbiballEinlass;
@@ -188,6 +191,7 @@
 				C89848EFA681793101F68B79 /* ScanView.swift in Sources */,
 				E7AFAD4CC5ECF104FDD8A878 /* SchoolLogo.swift in Sources */,
 				378EA90CE0896ED97FF436E8 /* StatsBar.swift in Sources */,
+				1DAB64EB98F58C8F6AC7A0B7 /* StatsPill.swift in Sources */,
 				49F208366DCF141FAE0DCAFD /* Style.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

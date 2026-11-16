@@ -5,15 +5,19 @@ import { ticketTypeMap } from "@/lib/orders";
 import { PAYMENT_LABEL, STATUS_LABEL, relationLabel } from "@/lib/format";
 import { EVENT, ageGroup } from "@/lib/event";
 import type { OrderWithDetails, Ticket } from "@/lib/types";
+import { DEFAULT_WRISTBANDS, getWristbands, wristbandFor, type WristbandMap } from "@/lib/wristbands";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const fmt = (iso: string | null) => (iso ? new Date(iso).toLocaleString("de-DE", { timeZone: "Europe/Berlin" }) : "");
 const BOLD = { bold: true } as const;
+// Wird pro Export mit den Farben aus den Einstellungen gefüllt
+let BANDS: WristbandMap = DEFAULT_WRISTBANDS;
+const bandName = (id: string | null) => wristbandFor(BANDS, id)?.name ?? "";
 const bandLabel = (id: string | null) => {
   const a = ageGroup(id);
-  return a ? `${a.wristband} (${a.short})` : "Alter fehlt";
+  return a ? `${bandName(id)} (${a.short})` : "Alter fehlt";
 };
 const HEAD_FILL: ExcelJS.Fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF000000" } };
 
@@ -43,6 +47,7 @@ function printSetup(ws: ExcelJS.Worksheet, title: string, landscape = false) {
 export async function GET() {
   const denied = await requireAdminApi();
   if (denied) return denied;
+  BANDS = await getWristbands();
 
   const { data, error } = await db().from("orders").select("*, order_items(*), tickets(*)").order("created_at", { ascending: true });
   if (error) return new Response(error.message, { status: 500 });
@@ -185,7 +190,7 @@ export async function GET() {
       type: types[r.t.ticket_type_id]?.name ?? r.t.ticket_type_id,
       holder: r.t.holder_name,
       age: ageGroup(r.t.age_group)?.label ?? "",
-      band: ageGroup(r.t.age_group)?.wristband ?? "",
+      band: bandName(r.t.age_group),
       status: r.t.status === "valid" ? "Gültig" : "Storniert",
       ostatus: STATUS_LABEL[r.o.status],
       checkin: fmt(r.t.checked_in_at),

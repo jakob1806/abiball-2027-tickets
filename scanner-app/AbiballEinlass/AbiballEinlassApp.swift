@@ -8,8 +8,7 @@ struct AbiballEinlassApp: App {
         WindowGroup {
             RootView()
                 .environment(model)
-                .preferredColorScheme(.light)
-                .tint(.black)
+                .tint(.primary)
         }
     }
 }

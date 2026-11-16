@@ -207,3 +207,20 @@ npm run build      # Produktions-Build
 npm run start      # Produktions-Server
 npm run typecheck  # TypeScript prüfen
 ```
+
+## Datenbank-Migrationen automatisch (GitHub Actions)
+
+`.github/workflows/supabase-migrations.yml` spielt neue Dateien in `supabase/migrations/` beim Merge auf `main`
+in die Produktions-Datenbank ein (bei Pull Requests nur Probelauf).
+
+Einrichtung (einmalig):
+1. GitHub → Settings → Secrets and variables → Actions → **New repository secret** `SUPABASE_DB_URL`
+   (Supabase → Project Settings → Database → Connection string → *Session pooler*, Passwort eingesetzt).
+2. GitHub → Actions → „Supabase-Migrationen“ → **Run workflow** mit Baseline der bereits von Hand ausgeführten Versionen,
+   z. B. `20261116000000 20261116020000 20261116030000 20261116040000 20261116050000 20261116060000`.
+   Danach führt der Workflow alle noch fehlenden Migrationen (z. B. Altersgruppen, Bändchenfarben) aus.
+
+## Bändchenfarben
+
+Admin → Einstellungen → **Bändchenfarben**: Name und Farbe je Altersgruppe. Web-Scanner, iOS-App (`wristband_name`,
+`wristband_color` in den Scanner-APIs), Gästeliste und Excel übernehmen sie sofort.
