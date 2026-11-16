@@ -26,6 +26,7 @@
 		E1A420F56D1C22A0DDE16648 /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98A8E296D25B5AE27730DEA6 /* MainView.swift */; };
 		E6D944545B6CFE3591DB9CDC /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB7C3DDE7BF70A61E5308904 /* LoginView.swift */; };
 		E7AFAD4CC5ECF104FDD8A878 /* SchoolLogo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0379A36EBCD83C3024927D10 /* SchoolLogo.swift */; };
+		F41DB1512B5C53A6DFDDEC76 /* ContactView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37CB4ABB96B764EAF56DE1E /* ContactView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -49,6 +50,7 @@
 		C2E3B05EBFA8568A6B6CE252 /* Style.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Style.swift; sourceTree = "<group>"; };
 		CB7C3DDE7BF70A61E5308904 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		CD9BB8A53EEDDAC70EDECC57 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		D37CB4ABB96B764EAF56DE1E /* ContactView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactView.swift; sourceTree = "<group>"; };
 		F9660155B0118D4D0554C34D /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -77,6 +79,7 @@
 				63AAAD0398CF46745E3DF10E /* AppModel.swift */,
 				04053E421171E0D0EB92278D /* Assets.xcassets */,
 				F9660155B0118D4D0554C34D /* Config.swift */,
+				D37CB4ABB96B764EAF56DE1E /* ContactView.swift */,
 				0C7339319B3F159E5BFE340C /* Demo.swift */,
 				ADFFB3A3F04CA94789772D1B /* Feedback.swift */,
 				80919F5D3AD0AD683057A4B2 /* GuestsView.swift */,
@@ -172,6 +175,7 @@
 				0962879BE9DF7C2286542AC3 /* AbiballEinlassApp.swift in Sources */,
 				B1CBEF33723368A0EF6D5C14 /* AppModel.swift in Sources */,
 				5B297F96F482387F6FD4154D /* Config.swift in Sources */,
+				F41DB1512B5C53A6DFDDEC76 /* ContactView.swift in Sources */,
 				D14EF3F72A0BE548387B0EC7 /* Demo.swift in Sources */,
 				DB3255CEED884191FE62974E /* Feedback.swift in Sources */,
 				A8B2191018544AC8DF0094F9 /* GuestsView.swift in Sources */,

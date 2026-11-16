@@ -12,6 +12,9 @@ struct MainView: View {
             NavigationStack { GuestsView() }
                 .tabItem { Label("Noch nicht da", systemImage: "person.crop.circle.badge.questionmark") }
                 .tag(1)
+            NavigationStack { ContactView() }
+                .tabItem { Label("Kontakt", systemImage: "person.crop.circle") }
+                .tag(2)
         }
         .task {
             // Zahlen regelmäßig aktualisieren, solange angemeldet.

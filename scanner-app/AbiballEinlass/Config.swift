@@ -13,4 +13,13 @@ enum Config {
         let i = Bundle.main.infoDictionary
         return "\(i?["CFBundleShortVersionString"] as? String ?? "?") (\(i?["CFBundleVersion"] as? String ?? "?"))"
     }
+
+    /// Ansprechpartner bei Problemen (Tab „Kontakt“).
+    enum Contact {
+        static let name = "Jakob Liess"
+        static let role = "Abiball-Team · Tickets & Einlass-App"
+        /// Internationales Format ohne Leerzeichen
+        static let phone = "+4915737260486"
+        static let phoneDisplay = "+49 1573 7260486"
+    }
 }

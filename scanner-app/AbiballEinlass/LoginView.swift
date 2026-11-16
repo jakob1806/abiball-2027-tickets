@@ -6,6 +6,7 @@ struct LoginView: View {
     @State private var password = ""
     @State private var error: String?
     @State private var busy = false
+    @State private var showContact = false
     @FocusState private var focus: Field?
     enum Field { case user, pass }
 
@@ -72,6 +73,10 @@ struct LoginView: View {
                     .font(.footnote).foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
                     .padding(.top, 16)
+                Button("Probleme bei der Anmeldung? Kontakt") { showContact = true }
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(Color.accentBlue)
+                    .padding(.top, 14)
                 HStack(spacing: 16) {
                     Link("Datenschutz", destination: Config.baseURL.appendingPathComponent("datenschutz"))
                     Link("Impressum", destination: Config.baseURL.appendingPathComponent("impressum"))
@@ -85,6 +90,9 @@ struct LoginView: View {
             .frame(maxWidth: .infinity)
         }
         .scrollDismissesKeyboard(.interactively)
+        .sheet(isPresented: $showContact) {
+            NavigationStack { ContactView(showsDone: true) }
+        }
         .background(Color.white)
     }
 
