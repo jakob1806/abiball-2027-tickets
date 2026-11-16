@@ -8,14 +8,14 @@ export const LEGAL = {
   organizerName: "Abiturjahrgang 2027 des Wittelsbacher-Gymnasiums München",
   legalForm: "Gesellschaft bürgerlichen Rechts (GbR)",
   // Mindestens eine volljährige, vertretungsberechtigte Person
-  representatives: "[Vor- und Nachname], [Vor- und Nachname]",
+  representatives: "Jakob Liess",
   // Ladungsfähige Anschrift (kein Postfach, nicht die Schuladresse)
-  street: "[Straße Hausnummer]",
-  city: "[PLZ] München",
-  email: "[kontakt@beispiel.de]",
-  phone: "[Telefonnummer]",
+  street: "Gabelsbergerstraße 6",
+  city: "80333 München",
+  email: "jakob.liess@outlook.de",
+  phone: "", // optional – leer lassen, wenn keine Telefonnummer veröffentlicht werden soll
   // Verantwortlich für redaktionelle Inhalte (§ 18 Abs. 2 MStV)
-  contentResponsible: "[Vor- und Nachname, Anschrift wie oben]",
+  contentResponsible: "Jakob Liess, Gabelsbergerstraße 6, 80333 München",
   // Umsatzsteuer: Kleinunternehmerregelung (§ 19 UStG) üblich – mit Steuerberatung/Finanzamt klären
   vatNote: "Gemäß § 19 UStG wird keine Umsatzsteuer berechnet. [Mit Finanzamt/Steuerberatung prüfen]",
   // Löschfrist für Bestelldaten nach der Veranstaltung

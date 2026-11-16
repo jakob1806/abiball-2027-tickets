@@ -18,8 +18,12 @@ export default function OrganizerAddress({ withContact = true }: { withContact?:
           <br />
           <br />
           E-Mail: <Ph>{LEGAL.email}</Ph>
-          <br />
-          Telefon: <Ph>{LEGAL.phone}</Ph>
+          {LEGAL.phone && (
+            <>
+              <br />
+              Telefon: <Ph>{LEGAL.phone}</Ph>
+            </>
+          )}
         </>
       )}
     </address>
