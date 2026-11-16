@@ -17,6 +17,8 @@ struct CheckinResponse: Decodable, Equatable {
     let checked_in_at: String?
     let checked_in_by_label: String?
     var code: String?
+    /// Altersgruppe (u16, u18, a18) für die Bändchenfarbe; fehlt bei älteren Server-Versionen.
+    var age_group: String? = nil
 }
 
 struct Stats: Decodable, Equatable {
@@ -42,6 +44,8 @@ struct Guest: Decodable, Identifiable, Equatable {
     let ticket_type_id: String
     let checked_in_at: String?
     let checked_in_by_label: String?
+    /// Altersgruppe (u16, u18, a18) für die Bändchenfarbe; fehlt bei älteren Server-Versionen.
+    var age_group: String? = nil
 }
 
 struct GuestsResponse: Decodable {

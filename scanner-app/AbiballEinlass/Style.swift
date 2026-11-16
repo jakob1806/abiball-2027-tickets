@@ -37,3 +37,70 @@ struct TicketBadge: View {
         .overlay(Capsule().stroke(Color.white.opacity(isAP && onColor ? 0.35 : 0), lineWidth: 1))
     }
 }
+
+/// Altersgruppe am Tag des Abiballs mit Bändchenfarbe.
+/// Muss zu `AGE_GROUPS` in `src/lib/event.ts` passen (Web, Admin, Excel).
+enum AgeGroup: String {
+    case u16, u18, a18
+
+    init?(_ id: String?) {
+        guard let id, let g = AgeGroup(rawValue: id) else { return nil }
+        self = g
+    }
+
+    var short: String {
+        switch self {
+        case .u16: return "unter 16"
+        case .u18: return "16–17"
+        case .a18: return "18+"
+        }
+    }
+
+    var wristband: String {
+        switch self {
+        case .u16: return "Rot"
+        case .u18: return "Gelb"
+        case .a18: return "Grün"
+        }
+    }
+
+    var color: Color {
+        switch self {
+        case .u16: return Color(red: 0.77, green: 0.0, blue: 0.0)
+        case .u18: return Color(red: 0.85, green: 0.64, blue: 0.0)
+        case .a18: return Color(red: 0.04, green: 0.49, blue: 0.2)
+        }
+    }
+
+    /// Kurzer Hinweis für das Einlass-Team (nil bei Volljährigen).
+    var hint: String? {
+        switch self {
+        case .u16: return "Ausweis prüfen – nur mit Begleitperson"
+        case .u18: return "Ausweis prüfen – ab 24 Uhr nur mit Erziehungsbeauftragung"
+        case .a18: return nil
+        }
+    }
+}
+
+/// Bändchen-Anzeige: farbiger Punkt, Altersgruppe und Farbe, z. B. „● 16–17 · Gelb“.
+/// Zeigt nichts, solange der Server keine Altersgruppe liefert (ältere Server-Version oder Altbestand).
+struct AgeBandBadge: View {
+    let id: String?
+    var large = false
+
+    var body: some View {
+        if let g = AgeGroup(id) {
+            let fs: CGFloat = large ? 20 : 12
+            HStack(spacing: large ? 8 : 5) {
+                Circle().fill(g.color).frame(width: large ? 16 : 9, height: large ? 16 : 9)
+                Text("\(g.short) · \(g.wristband)").font(.system(size: fs, weight: .bold))
+            }
+            .foregroundStyle(.black)
+            .padding(.horizontal, large ? 14 : 8).padding(.vertical, large ? 7 : 3)
+            .background(Capsule().fill(.white))
+            .overlay(Capsule().stroke(g.color, lineWidth: large ? 3 : 1.5))
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Bändchen \(g.wristband), Alter \(g.short)")
+        }
+    }
+}

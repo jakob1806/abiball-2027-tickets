@@ -17,13 +17,13 @@ enum Demo {
             return .init(result: "cancelled", holder_name: "Max Mustermann", ticket_number: "B-118", ticket_type_id: "ball", ticket_type_name: "Ball", checked_in_at: nil, checked_in_by_label: nil, code: code)
         }
         if c.contains("DUP") {
-            return .init(result: "duplicate", holder_name: "Anna Beispiel", ticket_number: "B-042", ticket_type_id: "ball", ticket_type_name: "Ball", checked_in_at: "2027-06-26T17:41:09.123456+00:00", checked_in_by_label: "Lena (Eingang 1)", code: code)
+            return .init(result: "duplicate", holder_name: "Anna Beispiel", ticket_number: "B-042", ticket_type_id: "ball", ticket_type_name: "Ball", checked_in_at: "2027-06-26T17:41:09.123456+00:00", checked_in_by_label: "Lena (Eingang 1)", code: code, age_group: "a18")
         }
         inside += 1
         if c.contains("AP") {
-            return .init(result: "ok", holder_name: "Jonas Afterparty", ticket_number: "A-007", ticket_type_id: "afterparty", ticket_type_name: "Afterparty", checked_in_at: nil, checked_in_by_label: nil, code: code)
+            return .init(result: "ok", holder_name: "Jonas Afterparty", ticket_number: "A-007", ticket_type_id: "afterparty", ticket_type_name: "Afterparty", checked_in_at: nil, checked_in_by_label: nil, code: code, age_group: "u18")
         }
-        return .init(result: "ok", holder_name: "Sophie Musterfrau", ticket_number: "B-203", ticket_type_id: "ball", ticket_type_name: "Ball", checked_in_at: nil, checked_in_by_label: nil, code: code)
+        return .init(result: "ok", holder_name: "Sophie Musterfrau", ticket_number: "B-203", ticket_type_id: "ball", ticket_type_name: "Ball", checked_in_at: nil, checked_in_by_label: nil, code: code, age_group: c.contains("U16") ? "u16" : "a18")
     }
 
     static func stats() -> Stats {
@@ -35,11 +35,11 @@ enum Demo {
 
     static func guests(status: String, q: String) -> GuestsResponse {
         let all: [Guest] = [
-            .init(id: "1", ticket_number: "B-001", holder_name: "Alexander Adler", ticket_type_id: "ball", checked_in_at: nil, checked_in_by_label: nil),
-            .init(id: "2", ticket_number: "A-014", holder_name: "Berta Brandl", ticket_type_id: "afterparty", checked_in_at: nil, checked_in_by_label: nil),
-            .init(id: "3", ticket_number: "B-077", holder_name: "Clara Christ", ticket_type_id: "ball", checked_in_at: "2027-06-26T17:12:00+00:00", checked_in_by_label: "Lena (Eingang 1)"),
-            .init(id: "4", ticket_number: "B-145", holder_name: "David Dorn", ticket_type_id: "ball", checked_in_at: nil, checked_in_by_label: nil),
-            .init(id: "5", ticket_number: "A-031", holder_name: "Emilia Engel", ticket_type_id: "afterparty", checked_in_at: nil, checked_in_by_label: nil),
+            .init(id: "1", ticket_number: "B-001", holder_name: "Alexander Adler", ticket_type_id: "ball", checked_in_at: nil, checked_in_by_label: nil, age_group: "a18"),
+            .init(id: "2", ticket_number: "A-014", holder_name: "Berta Brandl", ticket_type_id: "afterparty", checked_in_at: nil, checked_in_by_label: nil, age_group: "u18"),
+            .init(id: "3", ticket_number: "B-077", holder_name: "Clara Christ", ticket_type_id: "ball", checked_in_at: "2027-06-26T17:12:00+00:00", checked_in_by_label: "Lena (Eingang 1)", age_group: "a18"),
+            .init(id: "4", ticket_number: "B-145", holder_name: "David Dorn", ticket_type_id: "ball", checked_in_at: nil, checked_in_by_label: nil, age_group: "u16"),
+            .init(id: "5", ticket_number: "A-031", holder_name: "Emilia Engel", ticket_type_id: "afterparty", checked_in_at: nil, checked_in_by_label: nil, age_group: "a18"),
         ]
         let f = all.filter {
             (status == "all" || (status == "in") == ($0.checked_in_at != nil))

@@ -27,6 +27,12 @@ struct ResultCard: View {
                         }
                     }
                 }
+                if r.result == "ok" || r.result == "duplicate", let age = AgeGroup(r.age_group) {
+                    AgeBandBadge(id: r.age_group, large: true)
+                    if let hint = age.hint {
+                        Text(hint).font(.headline.weight(.bold))
+                    }
+                }
                 if r.result == "duplicate" {
                     let when = Fmt.time(r.checked_in_at) ?? "früher"
                     let who = r.checked_in_by_label.map { " von \($0)" } ?? ""
