@@ -20,6 +20,15 @@ export default function Impressum() {
       <p>[Vor- und Nachname, Anschrift wie oben]</p>
       <h2>Hinweis</h2>
       <p>{EVENT.organizerNote} Das {EVENT.school} ist nicht Veranstalter und nicht Vertragspartner.</p>
+      <h2>Bildnachweise</h2>
+      <p>
+        Foto Werk12 / Penthouse: © AAHHH GmbH,{" "}
+        <a href="https://aahhh.de" target="_blank" rel="noopener noreferrer">aahhh.de</a>.
+        <br />
+        Großes Bayerisches Staatswappen:{" "}
+        <a href="https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_Bavaria.svg" target="_blank" rel="noopener noreferrer">Wikimedia Commons</a>,
+        amtliches Werk des Freistaats Bayern, gemeinfrei nach § 5 Abs. 1 UrhG.
+      </p>
       <h2>Verbraucherstreitbeilegung</h2>
       <p>Wir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.</p>
     </LegalPage>

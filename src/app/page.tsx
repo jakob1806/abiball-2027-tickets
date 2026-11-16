@@ -1,4 +1,6 @@
+import Image from "next/image";
 import SiteHeader from "@/components/SiteHeader";
+import SchoolLogo from "@/components/SchoolLogo";
 import SiteFooter from "@/components/SiteFooter";
 import BookingForm, { type BookableType } from "@/components/BookingForm";
 import { EVENT } from "@/lib/event";
@@ -48,7 +50,8 @@ export default async function Home() {
       <main>
         <section className="hero">
           <div className="wrap">
-            <p className="eyebrow">{EVENT.school} · Abiturjahrgang 2027</p>
+            <div className="hero-logo"><SchoolLogo size="md" /></div>
+            <p className="eyebrow">Abiturjahrgang 2027</p>
             <h1 className="display">Abiball<br />2027</h1>
             <p className="lead">
               {EVENT.dateLabel}, {EVENT.timeLabel}. {EVENT.venueName}, München.
@@ -79,6 +82,19 @@ export default async function Home() {
                 <dd>19:00 Einlass Ball<br />Buffet und Programm<br />22:30 Afterparty bis 04:00</dd>
               </div>
             </dl>
+            <figure className="figure">
+              <Image
+                src="/images/aahhh-werk12.jpg"
+                alt="Das Werk12 im Werksviertel München bei Sonnenuntergang, oben das Penthouse mit den großen Buchstaben AAHHH"
+                width={1500}
+                height={752}
+                sizes="(max-width: 1160px) 100vw, 1112px"
+              />
+              <figcaption>
+                Werk12, Speicherstraße 20, München. Gefeiert wird im Penthouse im 4. Stock. Foto: © AAHHH GmbH,{" "}
+                <a href="https://aahhh.de" target="_blank" rel="noopener noreferrer">aahhh.de</a>
+              </figcaption>
+            </figure>
           </div>
         </section>
 

@@ -96,7 +96,8 @@ h1, h2, h3 { letter-spacing: -0.03em; }
 .stepper button:disabled { color: #c4c4c4; cursor: not-allowed; }
 .stepper output { min-width: 28px; text-align: center; font-weight: 650; }
 @media (max-width: 640px) {
-  .ticket-row { grid-template-columns: 1fr auto; }
+  .ticket-row { grid-template-columns: 1fr auto; gap: 16px; padding: 24px 0; }
+  .ticket-row > :first-child { grid-column: 1 / -1; }
   .ticket-row .price { grid-column: 1; }
 }
 
@@ -174,3 +175,39 @@ td a { text-decoration: none; font-weight: 600; }
 .scan-result .big { font-size: 32px; font-weight: 700; letter-spacing: -0.03em; line-height: 1.1; }
 #reader { border-radius: 16px; overflow: hidden; background: #000; }
 #reader video { border-radius: 16px; }
+
+/* Schul-Logo */
+.school-logo { display: inline-flex; flex-direction: column; align-items: center; color: #1a1a1a; text-transform: uppercase; line-height: 1.05; }
+.school-logo-crest { display: block; height: auto; width: 28%; margin-bottom: 0.5em; }
+.school-logo-name { font-weight: 500; letter-spacing: 0.045em; white-space: nowrap; }
+.school-logo-city { font-weight: 500; letter-spacing: 0.1em; font-size: 0.78em; margin-top: 0.2em; }
+.school-logo-sm { font-size: 15px; }
+.school-logo-md { font-size: 22px; }
+.school-logo-lg { font-size: 30px; }
+@media (max-width: 480px) {
+  .school-logo-md { font-size: 17px; }
+  .school-logo-lg { font-size: 21px; }
+}
+
+/* Bild mit Bildnachweis */
+.figure { margin: 56px 0 0; }
+.figure img { display: block; width: 100%; height: auto; border-radius: 4px; }
+.figure figcaption { margin-top: 10px; font-size: 13px; color: var(--muted); line-height: 1.45; }
+.figure figcaption a { color: var(--muted); }
+.hero-logo { margin-bottom: 56px; }
+@media (max-width: 760px) { .hero-logo { margin-bottom: 40px; } .figure { margin-top: 40px; } }
+
+/* Mobile Feinschliff */
+.nav-cta { display: none; }
+@media (max-width: 640px) {
+  .nav .nav-link { display: none; }
+  .nav-cta { display: inline-flex; }
+  .top .wrap { height: 60px; }
+  .wrap { padding: 0 20px; }
+  body { font-size: 16px; }
+  .lead { margin-top: 24px; }
+  .hero .row .btn { flex: 1 1 auto; }
+  .summary strong { font-size: 24px; }
+  .foot .cols { flex-direction: column; gap: 20px; }
+  .h2 { margin-bottom: 24px; }
+}

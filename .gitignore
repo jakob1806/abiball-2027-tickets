@@ -9,3 +9,7 @@ next-env.d.ts
 .DS_Store
 *.p12
 *.pem
+.vercel
+.env*
+assets-src/
+.claude/
