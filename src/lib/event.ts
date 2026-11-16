@@ -32,7 +32,7 @@ export const EVENT = {
 export const VENUE_BRAND = { label: "aahhh", url: "https://aahhh.de", domain: "aahhh.de" } as const;
 
 // Altersgruppen am Tag des Abiballs. Die Bändchenfarben hier zentral ändern
-// (und in der iOS-App unter scanner-app/AbiballEinlass/AgeBand.swift).
+// (und in der iOS-App in scanner-app/AbiballEinlass/Style.swift, `AgeGroup`).
 export const AGE_GROUPS = [
   { id: "u16", label: "unter 16", short: "< 16", wristband: "Rot", color: "#c40000" },
   { id: "u18", label: "16 oder 17", short: "16–17", wristband: "Gelb", color: "#d9a400" },
