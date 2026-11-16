@@ -6,7 +6,7 @@ Ticketverkauf für den Abiball 2027 des Abiturjahrgangs am Wittelsbacher-Gymnasi
 
 Veranstalter ist der Abiturjahrgang 2027 – es handelt sich nicht um eine Schulveranstaltung.
 
-> Hinweis aus dem Mietvertrag: Den Veranstaltungsort in Texten nie als „Location“ bezeichnen.
+> Sprachregel: Den Veranstaltungsort in Texten nie als „Location“ bezeichnen.
 
 ## Funktionen
 

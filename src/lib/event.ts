@@ -1,5 +1,5 @@
 // Zentrale Eckdaten der Veranstaltung.
-// Hinweis Mietvertrag: Den Veranstaltungsort nie als „Location“ bezeichnen.
+// Sprachregel: Den Veranstaltungsort nie als „Location“ bezeichnen.
 
 export const EVENT = {
   title: "Abiball 2027",
