@@ -1,0 +1,7 @@
+build/
+DerivedData/
+*.xcarchive
+*.ipa
+xcuserdata/
+*.xcuserstate
+ExportOptions-local.plist
