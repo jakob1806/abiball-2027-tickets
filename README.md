@@ -216,9 +216,8 @@ in die Produktions-Datenbank ein (bei Pull Requests nur Probelauf).
 Einrichtung (einmalig):
 1. GitHub → Settings → Secrets and variables → Actions → **New repository secret** `SUPABASE_DB_URL`
    (Supabase → Project Settings → Database → Connection string → *Session pooler*, Passwort eingesetzt).
-2. GitHub → Actions → „Supabase-Migrationen“ → **Run workflow** mit Baseline der bereits von Hand ausgeführten Versionen,
-   z. B. `20261116000000 20261116020000 20261116030000 20261116040000 20261116050000 20261116060000`.
-   Danach führt der Workflow alle noch fehlenden Migrationen (z. B. Altersgruppen, Bändchenfarben) aus.
+2. Nur falls Migrationen von Hand im SQL Editor ausgeführt wurden und in der Historie fehlen
+   („Stand anzeigen“ im Workflow-Protokoll): **Run workflow** mit „baseline“ = diese Versionen, damit sie als erledigt gelten.
 
 ## Bändchenfarben
 
