@@ -15,10 +15,15 @@ import { requireEnv } from "./env";
 export const LIMITS = {
   /** Bestellungen mit Kartenzahlung (Reservierung hält 30 Minuten) */
   checkout: { max: 8, windowSeconds: 15 * 60 },
-  /** Bestellungen per Überweisung (Reservierung hält Tage und verschickt eine Mail) – pro IP */
-  transferPerIp: { max: 3, windowSeconds: 24 * 3600 },
+  /**
+   * Bestellungen per Überweisung (Reservierung hält Tage und verschickt eine Mail) – pro IP.
+   * Gezählt werden Bestellungen, nicht Tickets: eine Bestellung kann bis zu „Max. pro Bestellung“
+   * (Admin → Einstellungen) Tickets enthalten. Großzügig, damit Familien mehrere Bestellungen
+   * (z. B. Geschwister, Großeltern) vom selben Anschluss aufgeben können.
+   */
+  transferPerIp: { max: 10, windowSeconds: 24 * 3600 },
   /** … und pro E-Mail-Adresse */
-  transferPerEmail: { max: 2, windowSeconds: 24 * 3600 },
+  transferPerEmail: { max: 6, windowSeconds: 24 * 3600 },
   /** Fehlgeschlagene Admin-Logins */
   adminLogin: { max: 10, windowSeconds: 15 * 60 },
   /** Fehlgeschlagene Scanner-Logins (am Abend teilen sich alle Einlassgeräte das WLAN der Location) */
