@@ -15,7 +15,7 @@ export interface BookableType {
 
 const euro = (c: number) => new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(c / 100);
 
-export default function BookingForm({ types, maxPerOrder, salesOpen, preview = false, pricesFinal = true }: { types: BookableType[]; maxPerOrder: number; salesOpen: boolean; preview?: boolean; pricesFinal?: boolean }) {
+export default function BookingForm({ types, maxPerOrder, salesOpen, preview = false, pricesFinal = true, transferDays = null }: { types: BookableType[]; maxPerOrder: number; salesOpen: boolean; preview?: boolean; pricesFinal?: boolean; transferDays?: number | null }) {
   const price = (c: number) => (pricesFinal ? euro(c) : `(${euro(c)})`);
   const [qty, setQty] = useState<Record<string, number>>(() => Object.fromEntries(types.map((t) => [t.id, 0])));
   const [name, setName] = useState("");
@@ -25,6 +25,7 @@ export default function BookingForm({ types, maxPerOrder, salesOpen, preview = f
   const [guests, setGuests] = useState<string[]>([]);
   const [youth, setYouth] = useState(false);
   const [terms, setTerms] = useState(false);
+  const [payment, setPayment] = useState<"card" | "transfer">("card");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -61,6 +62,7 @@ export default function BookingForm({ types, maxPerOrder, salesOpen, preview = f
           guestNames: guests.slice(0, guestCount).map((g) => g.trim()),
           youthProtection: youth,
           terms,
+          paymentMethod: transferDays && payment === "transfer" ? "ueberweisung" : "stripe",
         }),
       });
       const data = await res.json();
@@ -176,11 +178,33 @@ export default function BookingForm({ types, maxPerOrder, salesOpen, preview = f
             <span>{total} {total === 1 ? "Ticket" : "Tickets"}</span>
             <strong>{price(sum)}{!pricesFinal && <span className="price-note">Platzhalter</span>}</strong>
           </div>
+          {transferDays && (
+            <div className="pay-options" role="radiogroup" aria-label="Zahlungsart">
+              <label className={`pay-option ${payment === "card" ? "active" : ""}`}>
+                <input type="radio" name="payment" checked={payment === "card"} onChange={() => setPayment("card")} />
+                <span>
+                  <strong>Karte, Apple Pay oder Google Pay</strong>
+                  <span className="small muted">Sofort bezahlt, Tickets kommen direkt per E-Mail.</span>
+                </span>
+              </label>
+              <label className={`pay-option ${payment === "transfer" ? "active" : ""}`}>
+                <input type="radio" name="payment" checked={payment === "transfer"} onChange={() => setPayment("transfer")} />
+                <span>
+                  <strong>Überweisung</strong>
+                  <span className="small muted">Plätze {transferDays} Tage reserviert. Tickets erst nach Zahlungseingang, ohne Zahlung wird storniert.</span>
+                </span>
+              </label>
+            </div>
+          )}
           {error && <div className="alert" role="alert">{error}</div>}
           <button className="btn block" type="submit" disabled={busy || !salesOpen}>
-            {busy ? "Einen Moment …" : "Zur Zahlung"}
+            {busy ? "Einen Moment …" : payment === "transfer" && transferDays ? "Verbindlich bestellen" : "Zur Zahlung"}
           </button>
-          <p className="small muted" style={{ margin: 0, textAlign: "center" }}>Sichere Zahlung über Stripe: Karte, Apple Pay oder Google Pay.</p>
+          <p className="small muted" style={{ margin: 0, textAlign: "center" }}>
+            {payment === "transfer" && transferDays
+              ? "Du bekommst die Bankdaten und einen GiroCode für deine Banking-App."
+              : "Sichere Zahlung über Stripe: Karte, Apple Pay oder Google Pay."}
+          </p>
         </>
       )}
     </form>

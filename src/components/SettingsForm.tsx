@@ -5,7 +5,18 @@ import { useRouter } from "next/navigation";
 import type { TicketType } from "@/lib/types";
 
 type T = TicketType & { free: number };
-interface S { total_capacity: number; max_per_order: number; sales_open: boolean; prices_final: boolean }
+interface S {
+  total_capacity: number;
+  max_per_order: number;
+  sales_open: boolean;
+  prices_final: boolean;
+  bank_transfer_enabled: boolean;
+  bank_account_holder: string;
+  bank_iban: string;
+  bank_bic: string;
+  bank_name: string;
+  transfer_days: number;
+}
 
 const toEuro = (c: number) => (c / 100).toFixed(2).replace(".", ",");
 const toCents = (s: string) => Math.round(Number(s.replace(/\./g, "").replace(",", ".")) * 100);
@@ -74,6 +85,27 @@ export default function SettingsForm({ initialSettings, initialTypes }: { initia
             Hinweis: Die Kontingente ergeben zusammen {quotaSum}, die Gesamtkapazität ({s.total_capacity}) begrenzt zusätzlich. Das ist so gewollt möglich.
           </p>
         )}
+      </section>
+
+      <section className="panel form">
+        <h2 className="h3" style={{ margin: 0 }}>Überweisung (Vorkasse)</h2>
+        <label className="check">
+          <input type="checkbox" checked={s.bank_transfer_enabled} onChange={(e) => setS({ ...s, bank_transfer_enabled: e.target.checked })} />
+          <span><strong>Überweisung als Zahlungsart anbieten</strong><br /><span className="muted small">Erscheint als zweite Option unter Karte, Apple Pay und Google Pay. Tickets gibt es erst, wenn hier „Zahlung eingegangen“ bestätigt wird. Ohne Zahlung wird nach der Frist automatisch storniert und der Käufer per Mail informiert.</span></span>
+        </label>
+        <div className="grid-2">
+          <label className="field">Kontoinhaber<input type="text" value={s.bank_account_holder} onChange={(e) => setS({ ...s, bank_account_holder: e.target.value })} maxLength={70} /></label>
+          <label className="field">IBAN<input type="text" value={s.bank_iban} onChange={(e) => setS({ ...s, bank_iban: e.target.value })} autoComplete="off" maxLength={42} /></label>
+        </div>
+        <div className="grid-2">
+          <label className="field">BIC (optional)<input type="text" value={s.bank_bic} onChange={(e) => setS({ ...s, bank_bic: e.target.value })} maxLength={11} /></label>
+          <label className="field">Bank (optional)<input type="text" value={s.bank_name} onChange={(e) => setS({ ...s, bank_name: e.target.value })} maxLength={80} /></label>
+        </div>
+        <label className="field" style={{ maxWidth: 260 }}>
+          Zahlungsfrist in Tagen
+          <input type="number" min={2} max={30} value={s.transfer_days} onChange={(e) => setS({ ...s, transfer_days: Number(e.target.value) })} />
+        </label>
+        <p className="small muted" style={{ margin: 0 }}>Erinnerung geht automatisch 2 Tage vor Ablauf raus. Prüft eure Kontoauszüge regelmäßig auf den Verwendungszweck (ABI27-…).</p>
       </section>
 
       {types.map((t, i) => (

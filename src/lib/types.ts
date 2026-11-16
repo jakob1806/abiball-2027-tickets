@@ -53,6 +53,9 @@ export interface Order {
   mail_queued_at: string | null;
   mail_attempts: number;
   mail_last_error: string | null;
+  transfer_reference: string | null;
+  transfer_due_at: string | null;
+  transfer_reminder_sent_at: string | null;
   notes: string | null;
   created_at: string;
 }

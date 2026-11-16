@@ -6,6 +6,8 @@ import { siteUrl } from "@/lib/env";
 import { EVENT } from "@/lib/event";
 import { reservationErrorMessage, ticketTypeMap } from "@/lib/orders";
 import type { Order } from "@/lib/types";
+import { getBankDetails, newTransferReference, sendTransferInstructions, transferDueDate } from "@/lib/transfer";
+import { getAvailability } from "@/lib/orders";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -24,6 +26,7 @@ const schema = z
     guestNames: z.array(name).max(19),
     youthProtection: z.literal(true, { message: "Bitte bestätige den Hinweis zum Jugendschutz." }),
     terms: z.literal(true, { message: "Bitte akzeptiere AGB und Datenschutz." }),
+    paymentMethod: z.enum(["stripe", "ueberweisung"]).default("stripe"),
   })
   .superRefine((v, ctx) => {
     const total = v.items.reduce((s, i) => s + i.quantity, 0);
@@ -48,6 +51,14 @@ export async function POST(req: Request) {
   }
   const input = parsed.data;
 
+  // Überweisung nur, wenn im Admin aktiviert und Verkauf offen
+  const bank = input.paymentMethod === "ueberweisung" ? await getBankDetails() : null;
+  if (bank) {
+    if (!bank.enabled) return NextResponse.json({ error: "Überweisung ist derzeit nicht möglich." }, { status: 400 });
+    const avail = await getAvailability();
+    if (!avail.salesOpen) return NextResponse.json({ error: "Der Ticketverkauf ist derzeit geschlossen." }, { status: 409 });
+  }
+
   const { data: order, error } = await db().rpc("create_reservation", {
     p_buyer_name: input.name,
     p_email: input.email,
@@ -57,7 +68,7 @@ export async function POST(req: Request) {
     p_youth_ack: input.youthProtection,
     p_terms_ack: input.terms,
     p_items: input.items,
-    p_payment_method: "stripe",
+    p_payment_method: bank ? "ueberweisung" : "stripe",
     p_free: false,
     p_notes: null,
   });
@@ -66,6 +77,30 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: message }, { status: 409 });
   }
   const o = order as Order;
+
+  if (bank) {
+    const due = transferDueDate(bank.days);
+    let updated: Order | null = null;
+    for (let i = 0; i < 3 && !updated; i++) {
+      const { data } = await db()
+        .from("orders")
+        .update({ transfer_reference: newTransferReference(), transfer_due_at: due.toISOString(), reserved_until: due.toISOString() })
+        .eq("id", o.id)
+        .select("*")
+        .single();
+      updated = (data as Order) ?? null;
+    }
+    if (!updated) {
+      await db().from("orders").update({ status: "expired", reserved_until: null }).eq("id", o.id);
+      return NextResponse.json({ error: "Die Bestellung konnte nicht angelegt werden. Bitte versuche es erneut." }, { status: 500 });
+    }
+    try {
+      await sendTransferInstructions(updated, bank);
+    } catch (err) {
+      console.error("Überweisungs-Mail fehlgeschlagen", err); // Bankdaten stehen auch auf der Bestellseite
+    }
+    return NextResponse.json({ url: `${siteUrl()}/bestellung/${updated.public_token}?zahlung=ueberweisung` });
+  }
 
   try {
     const types = await ticketTypeMap();

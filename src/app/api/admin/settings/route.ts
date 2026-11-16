@@ -3,6 +3,7 @@ import { z } from "zod";
 import { db } from "@/lib/supabase";
 import { requireAdminApi } from "@/lib/admin-auth";
 import type { Availability } from "@/lib/orders";
+import { isValidIban, normalizeIban } from "@/lib/transfer";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -13,6 +14,12 @@ const schema = z.object({
     max_per_order: z.number().int().min(1).max(20),
     sales_open: z.boolean(),
     prices_final: z.boolean(),
+    bank_transfer_enabled: z.boolean(),
+    bank_account_holder: z.string().trim().max(70),
+    bank_iban: z.string().trim().max(42),
+    bank_bic: z.string().trim().max(11),
+    bank_name: z.string().trim().max(80),
+    transfer_days: z.number().int().min(2).max(30),
   }),
   types: z
     .array(
@@ -35,6 +42,14 @@ export async function PATCH(req: Request) {
   const parsed = schema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Ungültige Eingabe" }, { status: 400 });
   const { settings, types } = parsed.data;
+  settings.bank_iban = normalizeIban(settings.bank_iban);
+  settings.bank_bic = settings.bank_bic.toUpperCase();
+  if (settings.bank_iban && !isValidIban(settings.bank_iban)) {
+    return NextResponse.json({ error: "Die IBAN ist ungültig (Prüfziffer stimmt nicht)." }, { status: 400 });
+  }
+  if (settings.bank_transfer_enabled && (!settings.bank_iban || !settings.bank_account_holder)) {
+    return NextResponse.json({ error: "Für Überweisung bitte Kontoinhaber und IBAN eintragen." }, { status: 400 });
+  }
 
   // Kontingente dürfen nicht unter bereits verkaufte/reservierte Plätze sinken
   const { data: avail, error: aErr } = await db().rpc("ticket_availability");

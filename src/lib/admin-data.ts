@@ -14,13 +14,14 @@ function berlinDay(iso: string): string {
 }
 
 export async function getStats() {
-  const [avail, paidOrders, tickets, pending, recent, queue] = await Promise.all([
+  const [avail, paidOrders, tickets, pending, recent, queue, transfers] = await Promise.all([
     getAvailability(),
     db().from("orders").select("amount_cents, payment_method, paid_at, order_items(quantity)").eq("status", "paid"),
     db().from("tickets").select("ticket_type_id, checked_in_at, orders!inner(status)").eq("status", "valid").eq("orders.status", "paid"),
     db().from("orders").select("id, order_items(quantity)").eq("status", "pending").gt("reserved_until", new Date().toISOString()),
     db().from("orders").select("*, order_items(*), tickets(*)").order("created_at", { ascending: false }).limit(8),
     db().from("orders").select("id", { count: "exact", head: true }).eq("status", "paid").is("mail_sent_at", null).not("mail_queued_at", "is", null),
+    db().from("orders").select("id, buyer_name, amount_cents, transfer_reference, transfer_due_at").eq("status", "pending").eq("payment_method", "ueberweisung").order("transfer_due_at"),
   ]);
   for (const r of [paidOrders, tickets, pending, recent]) if (r.error) throw r.error;
 
@@ -76,6 +77,7 @@ export async function getStats() {
     days,
     recent: recent.data as OrderWithDetails[],
     mailQueue: queue.count ?? 0,
+    openTransfers: (transfers.data ?? []) as { id: string; buyer_name: string; amount_cents: number; transfer_reference: string | null; transfer_due_at: string | null }[],
   };
 }
 

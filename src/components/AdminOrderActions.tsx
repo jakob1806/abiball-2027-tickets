@@ -7,16 +7,18 @@ export default function AdminOrderActions({
   orderId,
   status,
   canRefund,
+  openTransfer = false,
 }: {
   orderId: string;
   status: string;
   canRefund: boolean;
+  openTransfer?: boolean;
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
-  async function run(action: "cancel" | "refund" | "resend", confirmText?: string) {
+  async function run(action: "cancel" | "refund" | "resend" | "transfer-paid" | "transfer-reminder", confirmText?: string) {
     if (confirmText && !window.confirm(confirmText)) return;
     setBusy(action);
     setMsg(null);
@@ -31,6 +33,22 @@ export default function AdminOrderActions({
   return (
     <div className="form" style={{ gap: 12 }}>
       <div className="row">
+        {openTransfer && (
+          <>
+            <button
+              className="btn small"
+              disabled={!!busy}
+              onClick={() => run("transfer-paid", "Ist die Überweisung auf dem Konto eingegangen? Danach werden die Tickets erzeugt und verschickt.")}
+            >
+              {busy === "transfer-paid" ? "Bestätige …" : "Zahlung eingegangen"}
+            </button>
+            {status === "pending" && (
+              <button className="btn small ghost" disabled={!!busy} onClick={() => run("transfer-reminder")}>
+                {busy === "transfer-reminder" ? "Sende …" : "Zahlungserinnerung senden"}
+              </button>
+            )}
+          </>
+        )}
         {status === "paid" && (
           <button className="btn small" disabled={!!busy} onClick={() => run("resend")}>
             {busy === "resend" ? "Sende …" : "Mail erneut senden"}

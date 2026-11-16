@@ -12,6 +12,8 @@ import { getOrderByToken, ticketTypeMap } from "@/lib/orders";
 import { qrSvg } from "@/lib/qr";
 import { isAppleWalletConfigured } from "@/lib/pkpass";
 import { googleWalletUrl } from "@/lib/gwallet";
+import { epcPayload, formatIban, getBankDetails } from "@/lib/transfer";
+import { dateTime } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Deine Bestellung", robots: { index: false, follow: false } };
@@ -32,7 +34,11 @@ export default async function OrderPage({ params, searchParams }: { params: { to
     console.error(err);
   }
 
-  const waiting = order.status === "pending" && searchParams.zahlung === "erfolgreich";
+  const isTransfer = order.payment_method === "ueberweisung";
+  const transferOpen = order.status === "pending" && isTransfer && !!order.transfer_reference;
+  const bank = transferOpen ? await getBankDetails() : null;
+  const giroQr = transferOpen && bank?.iban ? await qrSvg(epcPayload(bank, order.amount_cents, order.transfer_reference!)) : null;
+  const waiting = order.status === "pending" && !isTransfer && searchParams.zahlung === "erfolgreich";
 
   return (
     <>
@@ -48,7 +54,35 @@ export default async function OrderPage({ params, searchParams }: { params: { to
               <p className="lead">Das dauert meist nur wenige Sekunden. Die Seite aktualisiert sich automatisch, deine Tickets kommen zusätzlich per E-Mail.</p>
             </>
           )}
-          {order.status === "pending" && !waiting && (
+          {transferOpen && bank && (
+            <>
+              <h1 className="h1">Bitte überweisen</h1>
+              <p className="lead">
+                Deine Plätze sind bis {dateTime(order.transfer_due_at)} Uhr reserviert. Sobald das Geld da ist, bekommst du deine Tickets per
+                E-Mail. Ohne Zahlungseingang wird die Bestellung danach automatisch storniert.
+              </p>
+              <div className="bank-box">
+                <dl>
+                  <dt>Empfänger</dt><dd>{bank.holder}</dd>
+                  <dt>IBAN</dt><dd className="mono">{formatIban(bank.iban)}</dd>
+                  {bank.bic && (<><dt>BIC</dt><dd className="mono">{bank.bic}</dd></>)}
+                  {bank.bankName && (<><dt>Bank</dt><dd>{bank.bankName}</dd></>)}
+                  <dt>Betrag</dt><dd>{euro(order.amount_cents)}</dd>
+                  <dt>Verwendungszweck</dt><dd className="mono">{order.transfer_reference}</dd>
+                </dl>
+                {giroQr && (
+                  <div>
+                    <div className="qr" dangerouslySetInnerHTML={{ __html: giroQr }} />
+                    <div className="small muted" style={{ textAlign: "center", marginTop: 6 }}>GiroCode für deine Banking-App</div>
+                  </div>
+                )}
+              </div>
+              <p className="small muted" style={{ maxWidth: 640 }}>
+                Bitte gib genau diesen Verwendungszweck an. Die Bankdaten haben wir dir auch per E-Mail geschickt.
+              </p>
+            </>
+          )}
+          {order.status === "pending" && !isTransfer && !waiting && (
             <>
               <h1 className="h1">Zahlung nicht abgeschlossen</h1>
               <p className="lead">
@@ -60,8 +94,12 @@ export default async function OrderPage({ params, searchParams }: { params: { to
           )}
           {order.status === "expired" && (
             <>
-              <h1 className="h1">Reservierung abgelaufen</h1>
-              <p className="lead">Die Zahlung wurde nicht innerhalb von 30 Minuten abgeschlossen. Die Plätze wurden wieder freigegeben.</p>
+              <h1 className="h1">{isTransfer ? "Bestellung storniert" : "Reservierung abgelaufen"}</h1>
+              <p className="lead">
+                {isTransfer
+                  ? "Bis zur Zahlungsfrist ist keine Überweisung eingegangen. Die Plätze wurden wieder freigegeben. Falls du doch überwiesen hast, melde dich bitte bei uns."
+                  : "Die Zahlung wurde nicht innerhalb von 30 Minuten abgeschlossen. Die Plätze wurden wieder freigegeben."}
+              </p>
               <div className="row" style={{ marginTop: 32 }}><Link className="btn" href="/#tickets">Neu buchen</Link></div>
             </>
           )}

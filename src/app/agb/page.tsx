@@ -54,9 +54,10 @@ export default function Agb() {
         nicht abgeschlossen, verfällt die Reservierung.
       </p>
       <p>
-        (3) Der Vertrag kommt zustande, sobald die Zahlung erfolgreich war und wir dir die Bestellung per E-Mail mit den
-        Tickets bestätigen. Bei Direktverkauf durch das Orga-Team kommt der Vertrag mit Zahlung und Ausgabe der Tickets
-        zustande.
+        (3) Bei Zahlung per Karte, Apple Pay oder Google Pay kommt der Vertrag zustande, sobald die Zahlung erfolgreich war
+        und wir dir die Bestellung per E-Mail mit den Tickets bestätigen. Bei Zahlung per Überweisung kommt der Vertrag mit
+        unserer Bestellbestätigung per E-Mail zustande; die Tickets erhältst du nach Zahlungseingang (§ 5 Abs. 2). Bei
+        Direktverkauf durch das Orga-Team kommt der Vertrag mit Zahlung und Ausgabe der Tickets zustande.
       </p>
       <p>
         (4) Vertragssprache ist Deutsch. Den Vertragstext speichern wir; deine Bestelldaten und Tickets kannst du jederzeit
@@ -68,9 +69,19 @@ export default function Agb() {
 
       <h2>§ 5 Zahlung</h2>
       <p>
-        Online bezahlst du über den Zahlungsdienstleister Stripe per Kredit- oder Debitkarte, Apple Pay oder Google Pay. Der
-        Betrag wird mit Abschluss der Bestellung fällig. Beim Direktverkauf ist Barzahlung oder Überweisung nach Absprache mit
-        dem Orga-Team möglich; Tickets werden dann nach Zahlungseingang ausgestellt.
+        (1) Online bezahlst du über den Zahlungsdienstleister Stripe per Kredit- oder Debitkarte, Apple Pay oder Google Pay.
+        Der Betrag wird mit Abschluss der Bestellung fällig.
+      </p>
+      <p>
+        (2) Sofern angeboten, kannst du auch per Überweisung (Vorkasse) bezahlen. Du erhältst die Bankverbindung, den Betrag
+        und einen Verwendungszweck per E-Mail und auf deiner Bestellseite. Die Plätze sind bis zum Ablauf der dort genannten
+        Zahlungsfrist reserviert. Geht der vollständige Betrag mit dem richtigen Verwendungszweck bis dahin nicht ein, wird
+        die Bestellung automatisch storniert; du wirst darüber per E-Mail informiert. Die Tickets werden nach Zahlungseingang
+        ausgestellt. Kosten deiner Bank für die Überweisung trägst du selbst.
+      </p>
+      <p>
+        (3) Beim Direktverkauf ist Barzahlung oder Überweisung nach Absprache mit dem Orga-Team möglich; Tickets werden dann
+        nach Zahlungseingang ausgestellt.
       </p>
 
       <h2>§ 6 Kein Widerrufsrecht</h2>

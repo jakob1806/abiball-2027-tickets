@@ -90,6 +90,29 @@ export default async function AdminDashboard() {
         </div>
       </section>
 
+      {stats.openTransfers.length > 0 && (
+        <section className="panel" style={{ marginTop: 16 }}>
+          <div className="meter-label" style={{ marginBottom: 8 }}>
+            <h2 className="h3" style={{ margin: 0 }}>Offene Überweisungen</h2>
+            <span className="muted">{stats.openTransfers.length} · {euro(stats.openTransfers.reduce((s, t) => s + t.amount_cents, 0))}</span>
+          </div>
+          <table>
+            <thead><tr><th>Name</th><th>Verwendungszweck</th><th>Betrag</th><th>Frist</th></tr></thead>
+            <tbody>
+              {stats.openTransfers.map((t) => (
+                <tr key={t.id}>
+                  <td><Link href={`/admin/bestellung/${t.id}`}>{t.buyer_name}</Link></td>
+                  <td className="mono small">{t.transfer_reference}</td>
+                  <td>{euro(t.amount_cents)}</td>
+                  <td className="small">{dateTime(t.transfer_due_at)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p className="small muted" style={{ marginBottom: 0 }}>Geld eingegangen? Bestellung öffnen und „Zahlung eingegangen“ klicken. Ohne Zahlung wird nach Ablauf der Frist automatisch storniert und der Käufer per Mail informiert.</p>
+        </section>
+      )}
+
       <section className="panel" style={{ marginTop: 16 }}>
         <SalesChart days={stats.days} />
       </section>

@@ -268,3 +268,14 @@ mark.ph { background: #fff1b8; color: inherit; padding: 0 3px; border-radius: 3p
 .modal { background: #fff; border-radius: 16px; padding: 28px; max-width: 480px; width: 100%; box-shadow: 0 10px 40px rgba(0,0,0,0.15); }
 .modal p { margin: 0 0 14px; }
 .modal .h3 { margin-bottom: 14px; }
+.pay-options { display: grid; gap: 10px; }
+.pay-option { display: grid; grid-template-columns: 22px 1fr; gap: 12px; align-items: start; border: 1px solid #cfcfcf; border-radius: 12px; padding: 14px 16px; cursor: pointer; }
+.pay-option.active { border-color: var(--fg); box-shadow: inset 0 0 0 1px var(--fg); }
+.pay-option input { width: 18px; height: 18px; margin: 2px 0 0; accent-color: #000; }
+.pay-option > span { display: grid; gap: 2px; }
+.bank-box { display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: center; border: 1px solid var(--line); border-radius: 16px; padding: 24px; margin-top: 32px; max-width: 760px; }
+.bank-box dl { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; }
+.bank-box dt { color: var(--muted); font-size: 14px; }
+.bank-box dd { margin: 0; font-weight: 600; word-break: break-all; }
+.bank-box .qr { width: 180px; }
+@media (max-width: 640px) { .bank-box { grid-template-columns: 1fr; } .bank-box .qr { width: 200px; } }

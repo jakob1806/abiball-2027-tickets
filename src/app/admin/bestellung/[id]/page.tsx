@@ -21,7 +21,12 @@ export default async function AdminOrder({ params }: { params: { id: string } })
       <p className="muted" style={{ marginTop: 0 }}>{STATUS_LABEL[order.status]} · {PAYMENT_LABEL[order.payment_method]} · {euro(order.amount_cents)}</p>
 
       <div className="row" style={{ alignItems: "flex-start" }}>
-        <AdminOrderActions orderId={order.id} status={order.status} canRefund={order.payment_method === "stripe" && !!order.stripe_payment_intent} />
+        <AdminOrderActions
+          orderId={order.id}
+          status={order.status}
+          canRefund={order.payment_method === "stripe" && !!order.stripe_payment_intent}
+          openTransfer={order.payment_method === "ueberweisung" && !!order.transfer_reference && ["pending", "expired"].includes(order.status)}
+        />
       </div>
       <div style={{ marginTop: 12 }}>
         <EditOrderForm
@@ -47,6 +52,15 @@ export default async function AdminOrder({ params }: { params: { id: string } })
         <div><dt>Bezug</dt><dd>{relationLabel(order.relation, order.guest_of)}</dd></div>
         <div><dt>Weitere Gäste</dt><dd>{order.guest_names.length ? order.guest_names.join(", ") : "–"}</dd></div>
         <div><dt>Angelegt</dt><dd>{dateTime(order.created_at)}</dd></div>
+        {order.transfer_reference && (
+          <div>
+            <dt>Überweisung</dt>
+            <dd>
+              <span className="mono">{order.transfer_reference}</span>
+              {order.status === "pending" && <div className="small muted">Frist: {dateTime(order.transfer_due_at)}{order.transfer_reminder_sent_at ? ` · erinnert ${dateTime(order.transfer_reminder_sent_at)}` : ""}</div>}
+            </dd>
+          </div>
+        )}
         <div><dt>Bezahlt</dt><dd>{dateTime(order.paid_at)}</dd></div>
         <div>
           <dt>Mail versendet</dt>

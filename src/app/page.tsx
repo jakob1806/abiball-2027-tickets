@@ -5,6 +5,7 @@ import SiteFooter from "@/components/SiteFooter";
 import BookingForm, { type BookableType } from "@/components/BookingForm";
 import { EVENT } from "@/lib/event";
 import { getAvailability, getTicketTypes } from "@/lib/orders";
+import { getBankDetails } from "@/lib/transfer";
 
 export const dynamic = "force-dynamic";
 
@@ -14,12 +15,12 @@ const PREVIEW_TYPES: BookableType[] = [
   { id: "afterparty", name: "Afterparty-Ticket", description: "Einlass ab 22:30 Uhr zur Afterparty.", admission: "ab 22:30 Uhr", price_cents: 2000, available: 100 },
 ];
 
-async function loadTickets(): Promise<{ types: BookableType[]; maxPerOrder: number; salesOpen: boolean; error: boolean; preview: boolean; pricesFinal: boolean }> {
+async function loadTickets(): Promise<{ types: BookableType[]; maxPerOrder: number; salesOpen: boolean; error: boolean; preview: boolean; pricesFinal: boolean; transferDays: number | null }> {
   if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    return { types: PREVIEW_TYPES, maxPerOrder: EVENT.maxPerOrder, salesOpen: true, error: false, preview: true, pricesFinal: false };
+    return { types: PREVIEW_TYPES, maxPerOrder: EVENT.maxPerOrder, salesOpen: true, error: false, preview: true, pricesFinal: false, transferDays: null };
   }
   try {
-    const [types, avail] = await Promise.all([getTicketTypes(), getAvailability()]);
+    const [types, avail, bank] = await Promise.all([getTicketTypes(), getAvailability(), getBankDetails()]);
     return {
       types: types.map((t) => ({
         id: t.id,
@@ -34,15 +35,16 @@ async function loadTickets(): Promise<{ types: BookableType[]; maxPerOrder: numb
       error: false,
       preview: false,
       pricesFinal: avail.pricesFinal,
+      transferDays: bank.enabled ? bank.days : null,
     };
   } catch (err) {
     console.error(err);
-    return { types: [], maxPerOrder: EVENT.maxPerOrder, salesOpen: false, error: true, preview: false, pricesFinal: false };
+    return { types: [], maxPerOrder: EVENT.maxPerOrder, salesOpen: false, error: true, preview: false, pricesFinal: false, transferDays: null };
   }
 }
 
 export default async function Home() {
-  const { types, maxPerOrder, salesOpen, error, preview, pricesFinal } = await loadTickets();
+  const { types, maxPerOrder, salesOpen, error, preview, pricesFinal, transferDays } = await loadTickets();
   const soldOut = types.length > 0 && types.every((t) => t.available === 0);
 
   return (
@@ -114,7 +116,7 @@ export default async function Home() {
             ) : soldOut ? (
               <div className="note">Alle Tickets sind vergeben. Danke an alle, die dabei sind.</div>
             ) : null}
-            {!error && types.length > 0 && <BookingForm types={types} maxPerOrder={maxPerOrder} salesOpen={salesOpen && !soldOut} preview={preview} pricesFinal={pricesFinal} />}
+            {!error && types.length > 0 && <BookingForm types={types} maxPerOrder={maxPerOrder} salesOpen={salesOpen && !soldOut} preview={preview} pricesFinal={pricesFinal} transferDays={transferDays} />}
           </div>
         </section>
 

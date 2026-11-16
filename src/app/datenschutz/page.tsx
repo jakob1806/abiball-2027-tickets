@@ -71,6 +71,14 @@ export default function Datenschutz() {
         zusätzlich die Datenschutzbestimmungen von Apple bzw. Google.
       </p>
 
+      <h3>Zahlung per Überweisung</h3>
+      <p>
+        Wenn du per Überweisung bezahlst, sehen wir auf unserem Kontoauszug deinen Namen bzw. den Kontoinhaber, deine IBAN,
+        den Betrag und den Verwendungszweck. Wir nutzen diese Angaben nur, um die Zahlung deiner Bestellung zuzuordnen
+        (Art. 6 Abs. 1 lit. b DSGVO). Die Zahlungsaufforderung, eine Erinnerung vor Ablauf der Frist und ggf. die
+        Stornierungsmitteilung schicken wir dir per E-Mail.
+      </p>
+
       <h2>5. Datenbank</h2>
       <p>
         Bestell- und Ticketdaten speichern wir in einer Datenbank bei Supabase (Supabase Pte. Ltd. bzw. Supabase Inc.).
