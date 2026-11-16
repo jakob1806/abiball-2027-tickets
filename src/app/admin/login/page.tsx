@@ -24,7 +24,8 @@ function LoginForm() {
       router.replace(next && next.startsWith("/admin") ? next : "/admin");
       router.refresh();
     } else {
-      setError("Falsches Passwort.");
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      setError(res.status === 429 && data.error ? data.error : "Falsches Passwort.");
       setBusy(false);
     }
   }

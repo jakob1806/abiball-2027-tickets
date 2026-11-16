@@ -32,6 +32,14 @@ export default function Datenschutz() {
         (Art. 45 DSGVO); mit Vercel besteht ein Vertrag zur Auftragsverarbeitung. Schriften werden von unserem eigenen
         Server geladen, es werden keine Daten an Google Fonts übertragen.
       </p>
+      <p>
+        <strong>Schutz vor Missbrauch:</strong> Damit niemand mit automatisierten Bestellungen Plätze blockiert oder
+        Passwörter durchprobiert, zählen wir Bestellungen und fehlgeschlagene Anmeldungen pro Gerät bzw. Netz. Dafür
+        speichern wir in unserer Datenbank weder deine IP-Adresse noch deine E-Mail-Adresse im Klartext, sondern nur einen
+        mit einem geheimen Schlüssel gebildeten Kurzwert (Hash) zusammen mit einem Zähler. Diese Einträge löschen wir
+        nach spätestens zwei Tagen (Art. 6 Abs. 1 lit. f DSGVO; unser berechtigtes Interesse ist ein faires und sicheres
+        Ticketverfahren).
+      </p>
 
       <h2>3. Ticketbestellung</h2>
       <p>Für eine Bestellung verarbeiten wir:</p>

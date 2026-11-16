@@ -8,6 +8,7 @@ import { reservationErrorMessage, ticketTypeMap } from "@/lib/orders";
 import type { Order } from "@/lib/types";
 import { getBankDetails, newTransferReference, sendTransferInstructions, transferDueDate } from "@/lib/transfer";
 import { getAvailability } from "@/lib/orders";
+import { clientIp, hit, tooManyRequests } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -56,6 +57,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Ungültige Eingabe." }, { status: 400 });
   }
   const input = parsed.data;
+  const ip = clientIp(req);
 
   // Überweisung nur, wenn im Admin aktiviert und Verkauf offen
   const bank = input.paymentMethod === "ueberweisung" ? await getBankDetails() : null;
@@ -63,6 +65,16 @@ export async function POST(req: Request) {
     if (!bank.enabled) return NextResponse.json({ error: "Überweisung ist derzeit nicht möglich." }, { status: 400 });
     const avail = await getAvailability();
     if (!avail.salesOpen) return NextResponse.json({ error: "Der Ticketverkauf ist derzeit geschlossen." }, { status: 409 });
+    // Überweisungen reservieren Plätze für Tage und verschicken eine Mail → strenger begrenzt
+    const [okIp, okMail] = await Promise.all([hit("transferPerIp", ip), hit("transferPerEmail", input.email)]);
+    if (!okIp || !okMail) {
+      return tooManyRequests(
+        "transferPerIp",
+        "Von hier wurden heute schon mehrere Bestellungen per Überweisung angelegt. Bitte zahle mit Karte oder melde dich beim Abiturjahrgang.",
+      );
+    }
+  } else if (!(await hit("checkout", ip))) {
+    return tooManyRequests("checkout", "Zu viele Bestellversuche in kurzer Zeit. Bitte warte ein paar Minuten und versuche es dann erneut.");
   }
 
   const { data: order, error } = await db().rpc("create_reservation", {
