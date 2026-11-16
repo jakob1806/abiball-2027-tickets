@@ -8,6 +8,7 @@ export interface TicketType {
   admission: string;
   price_cents: number;
   quota: number;
+  number_prefix: string;
   sort: number;
   active: boolean;
 }
@@ -24,6 +25,7 @@ export interface Ticket {
   order_id: string;
   ticket_type_id: string;
   code: string;
+  ticket_number: string | null;
   holder_name: string;
   status: "valid" | "cancelled";
   checked_in_at: string | null;

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import PrintButton from "@/components/PrintButton";
+import TypeBadge from "@/components/TypeBadge";
 import { getGuestList } from "@/lib/admin-data";
 import { ticketTypeMap } from "@/lib/orders";
 import { dateTime } from "@/lib/format";
@@ -15,7 +16,7 @@ export default async function GuestList({ searchParams }: { searchParams: { ansi
   const rows = all.filter(
     (r) =>
       (!searchParams.type || r.ticket_type_id === searchParams.type) &&
-      (!q || r.holder_name.toLowerCase().includes(q) || r.orders.buyer_name.toLowerCase().includes(q) || (r.orders.guest_of ?? "").toLowerCase().includes(q)),
+      (!q || r.holder_name.toLowerCase().includes(q) || (r.ticket_number ?? "").toLowerCase().includes(q) || r.orders.buyer_name.toLowerCase().includes(q) || (r.orders.guest_of ?? "").toLowerCase().includes(q)),
   );
 
   // Gruppierung nach Abiturient/in: eigene Bestellungen + „Gast von“
@@ -45,6 +46,7 @@ export default async function GuestList({ searchParams }: { searchParams: { ansi
           {tab("tickets", "Alle Gäste A–Z")}
           {tab("abiturienten", "Nach Abiturient/in")}
           <PrintButton label="Drucken / PDF" />
+          <a className="btn small ghost no-print" href="/api/admin/export">Excel-Liste</a>
         </div>
       </div>
 
@@ -61,14 +63,14 @@ export default async function GuestList({ searchParams }: { searchParams: { ansi
       {view === "tickets" ? (
         <div className="table-wrap" style={{ marginTop: 16 }}>
           <table>
-            <thead><tr><th style={{ width: 36 }}>✓</th><th>Name</th><th>Ticket</th><th>Code</th><th>Bestellt von</th><th>Eingecheckt</th></tr></thead>
+            <thead><tr><th style={{ width: 36 }}>✓</th><th>Nr.</th><th>Name</th><th>Ticket</th><th>Bestellt von</th><th>Eingecheckt</th></tr></thead>
             <tbody>
               {rows.map((r) => (
                 <tr key={r.id}>
                   <td><span className="checkbox-box">{r.checked_in_at ? "✓" : ""}</span></td>
+                  <td className="ticket-no">{r.ticket_number ?? "–"}</td>
                   <td><strong>{r.holder_name}</strong></td>
-                  <td>{types[r.ticket_type_id]?.name ?? r.ticket_type_id}</td>
-                  <td className="mono small">{r.code}</td>
+                  <td><TypeBadge typeId={r.ticket_type_id} name={types[r.ticket_type_id]?.name} /></td>
                   <td>
                     <Link href={`/admin/bestellung/${r.orders.id}`}>{r.orders.buyer_name}</Link>
                     <div className="small muted">{r.orders.relation === "abiturient" ? "Abiturient/in" : `Gast von ${r.orders.guest_of ?? "–"}`}</div>
@@ -92,8 +94,9 @@ export default async function GuestList({ searchParams }: { searchParams: { ansi
                 <tbody>
                   {list.map((r) => (
                     <tr key={r.id}>
+                      <td className="ticket-no small">{r.ticket_number}</td>
                       <td>{r.holder_name}</td>
-                      <td className="small muted">{types[r.ticket_type_id]?.name ?? r.ticket_type_id}</td>
+                      <td className="small"><TypeBadge typeId={r.ticket_type_id} name={types[r.ticket_type_id]?.name} /></td>
                       <td className="small">{r.checked_in_at ? <span className="badge ok">drin</span> : ""}</td>
                     </tr>
                   ))}

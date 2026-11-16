@@ -6,6 +6,7 @@ import SiteFooter from "@/components/SiteFooter";
 import AutoRefresh from "@/components/AutoRefresh";
 import WalletButtons from "@/components/WalletButtons";
 import MailQueuedNotice from "@/components/MailQueuedNotice";
+import TypeBadge from "@/components/TypeBadge";
 import { EVENT, VENUE_ONE_LINE } from "@/lib/event";
 import { euro, relationLabel, STATUS_LABEL } from "@/lib/format";
 import { getOrderByToken, ticketTypeMap } from "@/lib/orders";
@@ -148,7 +149,7 @@ export default async function OrderPage({ params, searchParams }: { params: { to
               {validTickets.map((t, i) => (
                 <div className="ticket-card" key={t.id}>
                   <div className="row" style={{ justifyContent: "space-between" }}>
-                    <strong>{types[t.ticket_type_id]?.name ?? t.ticket_type_id}</strong>
+                    <TypeBadge typeId={t.ticket_type_id} name={types[t.ticket_type_id]?.name} number={t.ticket_number} />
                     {t.checked_in_at ? <span className="badge warn">Eingelassen</span> : <span className="badge ok">Gültig</span>}
                   </div>
                   <div>{t.holder_name}</div>

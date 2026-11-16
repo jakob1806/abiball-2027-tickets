@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import WalletButtons from "@/components/WalletButtons";
+import TypeBadge from "@/components/TypeBadge";
 import { EVENT, VENUE_ONE_LINE } from "@/lib/event";
 import { getTicketByCode, ticketTypeMap } from "@/lib/orders";
 import { qrSvg } from "@/lib/qr";
@@ -33,6 +34,7 @@ export default async function TicketPage({ params }: { params: { code: string } 
       <main className="hero" style={{ paddingTop: 56 }}>
         <div className="wrap" style={{ maxWidth: 520 }}>
           <p className="eyebrow">{EVENT.title} · {type?.admission}</p>
+          <div style={{ marginBottom: 16 }}><TypeBadge typeId={ticket.ticket_type_id} name={type?.name} number={ticket.ticket_number} /></div>
           <h1 className="h1">{type?.name ?? "Ticket"}</h1>
           <p style={{ fontSize: 22, margin: "0 0 24px" }}>{ticket.holder_name}</p>
           {valid ? (

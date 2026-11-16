@@ -279,3 +279,13 @@ mark.ph { background: #fff1b8; color: inherit; padding: 0 3px; border-radius: 3p
 .bank-box dd { margin: 0; font-weight: 600; word-break: break-all; }
 .bank-box .qr { width: 180px; }
 @media (max-width: 640px) { .bank-box { grid-template-columns: 1fr; } .bank-box .qr { width: 200px; } }
+.type-badge { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 650; padding: 4px 12px; border-radius: 999px; border: 1.5px solid #000; white-space: nowrap; }
+.type-ball { background: #000; color: #fff; }
+.type-after { background: #fff; color: #000; border-style: dashed; }
+.type-num { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: 0.02em; }
+.type-ball .type-num { border-right: 1px solid rgba(255,255,255,0.4); padding-right: 8px; }
+.type-after .type-num { border-right: 1px solid rgba(0,0,0,0.3); padding-right: 8px; }
+.ticket-no { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 700; }
+.scan-type { display: inline-block; margin-top: 10px; padding: 6px 14px; border-radius: 999px; font-weight: 700; font-size: 18px; }
+.scan-type-ball { background: #fff; color: #000; }
+.scan-type-after { background: transparent; color: #fff; border: 2px dashed #fff; }

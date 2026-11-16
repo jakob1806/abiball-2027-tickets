@@ -30,8 +30,24 @@ export async function buildTicketsPdf(
 
     const type = types[ticket.ticket_type_id];
 
-    page.drawText(`Ticket ${index + 1} von ${tickets.length}`, { x: m, y: y - 10, size: 10, font: regular, color: GREY });
-    y -= 70;
+    const isBall = ticket.ticket_type_id === "ball";
+    // Kopfband: Ball = schwarz gefüllt, Afterparty = weiß mit Rahmen
+    const bandH = 54;
+    const bandY = height - m - bandH + 10;
+    if (isBall) {
+      page.drawRectangle({ x: m, y: bandY, width: width - 2 * m, height: bandH, color: BLACK });
+    } else {
+      page.drawRectangle({ x: m, y: bandY, width: width - 2 * m, height: bandH, borderColor: BLACK, borderWidth: 2, borderDashArray: [6, 4] });
+    }
+    const bandColor = isBall ? rgb(1, 1, 1) : BLACK;
+    const label = (type?.name ?? ticket.ticket_type_id).toUpperCase();
+    page.drawText(label, { x: m + 18, y: bandY + 19, size: 20, font: bold, color: bandColor });
+    const no = ticket.ticket_number ?? "";
+    const noW = bold.widthOfTextAtSize(no, 22);
+    page.drawText(no, { x: width - m - 18 - noW, y: bandY + 18, size: 22, font: bold, color: bandColor });
+    y = bandY - 22;
+    page.drawText(`Ticket ${index + 1} von ${tickets.length}`, { x: m, y, size: 10, font: regular, color: GREY });
+    y -= 56;
     page.drawText(EVENT.title, { x: m, y, size: 44, font: bold, color: BLACK });
     y -= 30;
     page.drawText(EVENT.school, { x: m, y, size: 13, font: regular, color: GREY });
@@ -40,7 +56,7 @@ export async function buildTicketsPdf(
     y -= 36;
 
     const rows: [string, string][] = [
-      ["Ticket", type?.name ?? ticket.ticket_type_id],
+      ["Ticket", `${type?.name ?? ticket.ticket_type_id}${ticket.ticket_number ? `  ·  Nr. ${ticket.ticket_number}` : ""}`],
       ["Einlass", type?.admission ?? ""],
       ["Name", ticket.holder_name],
       ["Datum", `${EVENT.dateLabel}, ${EVENT.timeLabel}`],
@@ -55,8 +71,8 @@ export async function buildTicketsPdf(
     }
 
     const qr = await pdf.embedPng(await qrPng(ticket.code, 700));
-    const qrSize = 250;
-    const qrY = 150;
+    const qrSize = 230;
+    const qrY = 128;
     page.drawImage(qr, { x: (width - qrSize) / 2, y: qrY, width: qrSize, height: qrSize });
     const codeWidth = bold.widthOfTextAtSize(ticket.code, 16);
     page.drawText(ticket.code, { x: (width - codeWidth) / 2, y: qrY - 26, size: 16, font: bold, color: BLACK });

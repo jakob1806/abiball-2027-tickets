@@ -55,7 +55,8 @@ export async function googleWalletUrl(
     classId,
     state: "ACTIVE",
     ticketHolderName: t.holder_name,
-    ticketNumber: t.code,
+    ticketNumber: t.ticket_number ?? t.code,
+    hexBackgroundColor: t.ticket_type_id === "ball" ? "#000000" : "#5a5a5a",
     ticketType: de(types[t.ticket_type_id]?.name ?? "Ticket"),
     barcode: { type: "QR_CODE", value: t.code, alternateText: t.code },
     linksModuleData: {

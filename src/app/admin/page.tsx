@@ -30,6 +30,7 @@ export default async function AdminDashboard() {
         <div className="row">
           <Link className="btn small" href="/admin/neu">Neue Buchung</Link>
           <Link className="btn small ghost" href="/admin/scanner">Einlass</Link>
+          <a className="btn small ghost" href="/api/admin/export">Excel-Liste</a>
         </div>
       </div>
 

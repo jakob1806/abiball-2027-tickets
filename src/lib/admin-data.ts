@@ -85,13 +85,14 @@ export async function getStats() {
 export async function getGuestList() {
   const { data, error } = await db()
     .from("tickets")
-    .select("id, code, holder_name, ticket_type_id, checked_in_at, orders!inner(id, buyer_name, email, relation, guest_of, status)")
+    .select("id, code, ticket_number, holder_name, ticket_type_id, checked_in_at, orders!inner(id, buyer_name, email, relation, guest_of, status)")
     .eq("status", "valid")
     .eq("orders.status", "paid");
   if (error) throw error;
   type Row = {
     id: string;
     code: string;
+    ticket_number: string | null;
     holder_name: string;
     ticket_type_id: string;
     checked_in_at: string | null;
@@ -119,8 +120,10 @@ export async function listOrders(filter: OrderFilter): Promise<OrderWithDetails[
 
   const q = (filter.q ?? "").replace(/[,()%*\\]/g, " ").trim();
   if (q) {
-    if (/^WG27-/i.test(q)) {
-      const { data } = await db().from("tickets").select("order_id").ilike("code", `${q}%`);
+    if (/^WG27-/i.test(q) || /^[A-Z]-\d{1,4}$/i.test(q)) {
+      const col = /^WG27-/i.test(q) ? "code" : "ticket_number";
+      const term = col === "ticket_number" ? `${q.split("-")[0]}-${q.split("-")[1].padStart(3, "0")}` : `${q}%`;
+      const { data } = await db().from("tickets").select("order_id").ilike(col, term);
       const ids = (data ?? []).map((t) => t.order_id);
       query = query.in("id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]);
     } else {

@@ -15,7 +15,7 @@ export default async function AdminBookings({ searchParams }: { searchParams: { 
       <h1 className="h2" style={{ marginBottom: 24 }}>Buchungen</h1>
 
       <form className="filters" method="get">
-        <input type="search" name="q" placeholder="Name, E-Mail, „Gast von“ oder Ticketcode" defaultValue={searchParams.q ?? ""} />
+        <input type="search" name="q" placeholder="Name, E-Mail, „Gast von“, Ticketnr. (B-012) oder Code" defaultValue={searchParams.q ?? ""} />
         <select name="status" defaultValue={searchParams.status ?? ""}>
           <option value="">Alle Status</option>
           {Object.entries(STATUS_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}

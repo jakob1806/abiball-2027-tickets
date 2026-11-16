@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import AdminOrderActions from "@/components/AdminOrderActions";
 import EditOrderForm from "@/components/EditOrderForm";
+import TypeBadge from "@/components/TypeBadge";
 import { getOrderById, ticketTypeMap } from "@/lib/orders";
 import { dateTime, euro, PAYMENT_LABEL, relationLabel, STATUS_LABEL } from "@/lib/format";
 import { isStripeTestMode } from "@/lib/stripe";
@@ -40,7 +41,7 @@ export default async function AdminOrder({ params }: { params: { id: string } })
             tickets: order.tickets.filter((t) => t.status === "valid").map((t) => ({
               id: t.id,
               holder_name: t.holder_name,
-              code: t.code,
+              code: t.ticket_number ?? t.code,
               type: types[t.ticket_type_id]?.name ?? t.ticket_type_id,
             })),
           }}
@@ -85,18 +86,19 @@ export default async function AdminOrder({ params }: { params: { id: string } })
       <h2 className="h3">Tickets</h2>
       <div className="table-wrap">
         <table>
-          <thead><tr><th>Code</th><th>Art</th><th>Name</th><th>Status</th><th>Eingecheckt</th></tr></thead>
+          <thead><tr><th>Nr.</th><th>Art</th><th>Name</th><th>Code</th><th>Status</th><th>Eingecheckt</th></tr></thead>
           <tbody>
             {order.tickets.map((t) => (
               <tr key={t.id}>
-                <td className="mono"><a href={`/ticket/${t.code}`} target="_blank">{t.code}</a></td>
-                <td>{types[t.ticket_type_id]?.name ?? t.ticket_type_id}</td>
+                <td className="ticket-no">{t.ticket_number ?? "–"}</td>
+                <td><TypeBadge typeId={t.ticket_type_id} name={types[t.ticket_type_id]?.name} /></td>
                 <td>{t.holder_name}</td>
+                <td className="mono small"><a href={`/ticket/${t.code}`} target="_blank">{t.code}</a></td>
                 <td>{t.status === "valid" ? <span className="badge ok">Gültig</span> : <span className="badge bad">Storniert</span>}</td>
                 <td>{dateTime(t.checked_in_at)}</td>
               </tr>
             ))}
-            {order.tickets.length === 0 && <tr><td colSpan={5} className="muted">Noch keine Tickets (erst nach Zahlung).</td></tr>}
+            {order.tickets.length === 0 && <tr><td colSpan={6} className="muted">Noch keine Tickets (erst nach Zahlung).</td></tr>}
           </tbody>
         </table>
       </div>

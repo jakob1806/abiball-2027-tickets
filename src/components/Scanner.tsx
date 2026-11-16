@@ -8,6 +8,8 @@ interface Result {
   code: string;
   holder_name: string | null;
   ticket_type_name: string | null;
+  ticket_type_id?: string | null;
+  ticket_number?: string | null;
   checked_in_at: string | null;
 }
 
@@ -143,8 +145,15 @@ export default function Scanner() {
       {result && (
         <div className={`scan-result ${result.result}`} role="status" aria-live="assertive">
           <div className="big">{TITLE[result.result]}</div>
+          {result.ticket_type_name && (
+            <div className={`scan-type ${result.ticket_type_id === "ball" ? "scan-type-ball" : "scan-type-after"}`}>
+              {result.ticket_number ? `${result.ticket_number} · ` : ""}{result.ticket_type_name}
+            </div>
+          )}
           {result.holder_name && <div style={{ fontSize: 22, marginTop: 8 }}>{result.holder_name}</div>}
-          {result.ticket_type_name && <div>{result.ticket_type_name}</div>}
+          {result.result === "ok" && result.ticket_type_id && result.ticket_type_id !== "ball" && (
+            <div style={{ marginTop: 6, fontWeight: 600 }}>Nur Afterparty – Einlass ab 22:30 Uhr</div>
+          )}
           {result.result === "duplicate" && <div>Erster Einlass um {time(result.checked_in_at)} Uhr</div>}
           <div className="mono small" style={{ marginTop: 8, opacity: 0.85 }}>{result.code}</div>
         </div>
@@ -182,8 +191,8 @@ export default function Scanner() {
                 {history.map((h, i) => (
                   <tr key={i}>
                     <td><span className={`badge ${h.result === "ok" ? "ok" : h.result === "duplicate" ? "warn" : "bad"}`}>{TITLE[h.result]}</span></td>
+                    <td className="ticket-no small">{h.ticket_number ?? "–"}</td>
                     <td>{h.holder_name ?? "–"}</td>
-                    <td className="mono small">{h.code}</td>
                   </tr>
                 ))}
               </tbody>

@@ -30,6 +30,7 @@ export default function AdminNav() {
           {link("/admin/neu", "Neue Buchung")}
           {link("/admin/scanner", "Einlass")}
           {link("/admin/einstellungen", "Einstellungen")}
+          <a href="/api/admin/export">Excel</a>
           <button onClick={logout} style={{ background: "none", border: 0, font: "inherit", color: "var(--muted)", cursor: "pointer", padding: 0 }}>
             Abmelden
           </button>
