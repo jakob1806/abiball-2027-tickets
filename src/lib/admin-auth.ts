@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import { ADMIN_COOKIE, verifySessionToken } from "./session";
 
 export async function isAdmin(): Promise<boolean> {
-  return verifySessionToken(cookies().get(ADMIN_COOKIE)?.value);
+  return verifySessionToken((await cookies()).get(ADMIN_COOKIE)?.value);
 }
 
 /** Für API-Routen: gibt eine 401-Antwort zurück, wenn nicht eingeloggt. */

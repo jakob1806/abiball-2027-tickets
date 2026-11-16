@@ -7,7 +7,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /** Passwort im Admin anzeigen (entschlüsselt). */
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
+export async function GET(_req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const denied = await requireAdminApi();
   if (denied) return denied;
   const { data } = await db().from("scanner_users").select("password_enc").eq("id", params.id).maybeSingle();

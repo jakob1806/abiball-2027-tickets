@@ -19,7 +19,11 @@ import { dateTime } from "@/lib/format";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Deine Bestellung", robots: { index: false, follow: false } };
 
-export default async function OrderPage({ params, searchParams }: { params: { token: string }; searchParams: { zahlung?: string } }) {
+export default async function OrderPage(
+  props: { params: Promise<{ token: string }>; searchParams: Promise<{ zahlung?: string }> }
+) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const order = await getOrderByToken(params.token);
   if (!order) notFound();
   const types = await ticketTypeMap();

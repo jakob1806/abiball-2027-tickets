@@ -6,7 +6,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /** Manueller Einlass über die Gästeliste: abhaken oder wieder zurücknehmen. */
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const denied = await requireAdminApi();
   if (denied) return denied;
   const { checked } = (await req.json().catch(() => ({}))) as { checked?: boolean };

@@ -19,7 +19,8 @@ const schema = z.object({
 });
 
 /** Stammdaten einer Bestellung und Ticketinhaber korrigieren. */
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const denied = await requireAdminApi();
   if (denied) return denied;
 
@@ -48,7 +49,8 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 }
 
 /** Abgelaufene oder unbezahlt stornierte Buchung endgültig löschen. */
-export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const denied = await requireAdminApi();
   if (denied) return denied;
   const { data: o } = await db().from("orders").select("id, status, paid_at").eq("id", params.id).maybeSingle();

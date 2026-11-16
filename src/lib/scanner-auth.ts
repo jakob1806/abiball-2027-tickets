@@ -61,7 +61,7 @@ export async function loginScanner(username: string, password: string): Promise<
 export async function currentScanner(req: Request): Promise<{ id: string | null; label: string } | null> {
   const auth = req.headers.get("authorization");
   const bearer = auth?.startsWith("Bearer ") ? auth.slice(7) : null;
-  const user = await verifyScannerToken(bearer ?? cookies().get(SCANNER_COOKIE)?.value);
+  const user = await verifyScannerToken(bearer ?? (await cookies()).get(SCANNER_COOKIE)?.value);
   if (user) return { id: user.id, label: user.name };
   if (await isAdmin()) return { id: null, label: "Admin" };
   return null;

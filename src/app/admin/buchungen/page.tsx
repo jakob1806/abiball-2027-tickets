@@ -9,7 +9,10 @@ export const dynamic = "force-dynamic";
 
 const badgeClass: Record<string, string> = { paid: "ok", pending: "warn", expired: "", cancelled: "bad", refunded: "bad" };
 
-export default async function AdminBookings({ searchParams }: { searchParams: { q?: string; status?: string; type?: string; zahlung?: string } }) {
+export default async function AdminBookings(
+  props: { searchParams: Promise<{ q?: string; status?: string; type?: string; zahlung?: string }> }
+) {
+  const searchParams = await props.searchParams;
   const [orders, types, expired] = await Promise.all([
     listOrders(searchParams),
     ticketTypeMap(),

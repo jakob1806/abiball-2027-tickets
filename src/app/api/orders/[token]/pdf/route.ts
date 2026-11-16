@@ -4,7 +4,8 @@ import { buildTicketsPdf } from "@/lib/pdf";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function GET(_req: Request, { params }: { params: { token: string } }) {
+export async function GET(_req: Request, props: { params: Promise<{ token: string }> }) {
+  const params = await props.params;
   const order = await getOrderByToken(params.token);
   if (!order || order.status !== "paid") return new Response("Nicht gefunden", { status: 404 });
   const tickets = order.tickets.filter((t) => t.status === "valid");

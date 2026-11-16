@@ -11,7 +11,10 @@ export const dynamic = "force-dynamic";
 
 type View = "tickets" | "abiturienten";
 
-export default async function GuestList({ searchParams }: { searchParams: { ansicht?: string; type?: string; q?: string; status?: string } }) {
+export default async function GuestList(
+  props: { searchParams: Promise<{ ansicht?: string; type?: string; q?: string; status?: string }> }
+) {
+  const searchParams = await props.searchParams;
   const view: View = searchParams.ansicht === "abiturienten" ? "abiturienten" : "tickets";
   const [all, types] = await Promise.all([getGuestList(), ticketTypeMap()]);
   const q = (searchParams.q ?? "").trim().toLowerCase();
