@@ -9,6 +9,7 @@ settings:
     DEVELOPMENT_TEAM: DVH3MYQ64A
     CODE_SIGN_STYLE: Automatic
     SWIFT_VERSION: "5.0"
+    # Version NICHT erhöhen: neue Versionsnummer = neue volle Beta-Prüfung bei Apple. Nur die Buildnummer zählt (Xcode Cloud).
     MARKETING_VERSION: "1.0"
     CURRENT_PROJECT_VERSION: "2"
 targets:

@@ -31,3 +31,10 @@ xcodebuild -project AbiballEinlass.xcodeproj -scheme AbiballEinlass -destination
    Interne Tester (Mitglieder des Developer-Teams) brauchen keine Beta-Prüfung; externe Tester eine kurze Prüfung durch Apple.
 
 Verschlüsselungsfrage ist durch `ITSAppUsesNonExemptEncryption = NO` bereits beantwortet.
+
+## Möglichst wenige Apple-Prüfungen
+
+- Version bleibt **1.0** (`MARKETING_VERSION` in `project.yml`). Nur die Buildnummer steigt automatisch.
+  Eine neue Versionsnummer (1.1, 2.0 …) löst wieder eine volle Beta-Prüfung aus.
+- Xcode-Cloud-Workflow startet nur bei Änderungen in `scanner-app/` – Website-Änderungen erzeugen keine App-Builds.
+- Builds laufen nach 90 Tagen ab: einige Wochen vor dem Ball einen frischen Build starten.
