@@ -50,7 +50,7 @@ export default async function Home() {
       <main>
         <section className="hero">
           <div className="wrap">
-            <div className="hero-logo"><SchoolLogo size="md" /></div>
+            <div className="hero-logo"><SchoolLogo size="md" layout="inline" /></div>
             <p className="eyebrow">Abiturjahrgang 2027</p>
             <h1 className="display">Abiball<br />2027</h1>
             <p className="lead">

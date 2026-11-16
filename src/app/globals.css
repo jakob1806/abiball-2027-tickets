@@ -177,16 +177,25 @@ td a { text-decoration: none; font-weight: 600; }
 #reader video { border-radius: 16px; }
 
 /* Schul-Logo */
-.school-logo { display: inline-flex; flex-direction: column; align-items: center; color: #1a1a1a; text-transform: uppercase; line-height: 1.05; }
-.school-logo-crest { display: block; height: auto; width: 28%; margin-bottom: 0.5em; }
+.school-logo { display: inline-flex; color: #1a1a1a; text-transform: uppercase; line-height: 1.05; }
+.school-logo-text { display: flex; flex-direction: column; }
 .school-logo-name { font-weight: 500; letter-spacing: 0.045em; white-space: nowrap; }
 .school-logo-city { font-weight: 500; letter-spacing: 0.1em; font-size: 0.78em; margin-top: 0.2em; }
-.school-logo-sm { font-size: 15px; }
-.school-logo-md { font-size: 22px; }
-.school-logo-lg { font-size: 30px; }
+.school-logo-crest { display: block; height: auto; }
+/* übereinander, zentriert – wie das Original */
+.school-logo-stacked { flex-direction: column; align-items: center; }
+.school-logo-stacked .school-logo-text { align-items: center; }
+.school-logo-stacked .school-logo-crest { width: 28%; margin-bottom: 0.5em; }
+/* nebeneinander, linksbündig – passt zum Raster der Seite */
+.school-logo-inline { flex-direction: row; align-items: center; gap: 0.75em; }
+.school-logo-inline .school-logo-crest { width: 4.4em; }
+.school-logo-inline .school-logo-text { align-items: flex-start; padding-left: 0.75em; border-left: 1px solid var(--line); }
+.school-logo-sm { font-size: 13px; }
+.school-logo-md { font-size: 19px; }
+.school-logo-lg { font-size: 24px; }
 @media (max-width: 480px) {
-  .school-logo-md { font-size: 17px; }
-  .school-logo-lg { font-size: 21px; }
+  .school-logo-md { font-size: 13.5px; }
+  .school-logo-lg { font-size: 18px; }
 }
 
 /* Bild mit Bildnachweis */
@@ -194,7 +203,7 @@ td a { text-decoration: none; font-weight: 600; }
 .figure img { display: block; width: 100%; height: auto; border-radius: 4px; }
 .figure figcaption { margin-top: 10px; font-size: 13px; color: var(--muted); line-height: 1.45; }
 .figure figcaption a { color: var(--muted); }
-.hero-logo { margin-bottom: 56px; }
+.hero-logo { margin-bottom: 72px; }
 @media (max-width: 760px) { .hero-logo { margin-bottom: 40px; } .figure { margin-top: 40px; } }
 
 /* Mobile Feinschliff */
