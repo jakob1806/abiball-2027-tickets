@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import AgeSelect from "./AgeSelect";
 
 interface T { id: string; name: string; price_cents: number; available: number }
 const euro = (c: number) => new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(c / 100);
@@ -13,7 +14,8 @@ export default function ManualBookingForm({ types, maxPerOrder }: { types: T[]; 
   const [email, setEmail] = useState("");
   const [relation, setRelation] = useState<"abiturient" | "gast">("abiturient");
   const [guestOf, setGuestOf] = useState("");
-  const [guests, setGuests] = useState("");
+  const [guests, setGuests] = useState<string[]>([]);
+  const [ages, setAges] = useState<string[]>([]); // Index 0 = Besteller/in
   const [paymentMethod, setPaymentMethod] = useState<"bar" | "ueberweisung" | "frei">("bar");
   const [notes, setNotes] = useState("");
   const [sendMail, setSendMail] = useState(true);
@@ -21,12 +23,15 @@ export default function ManualBookingForm({ types, maxPerOrder }: { types: T[]; 
   const [error, setError] = useState<string | null>(null);
 
   const total = Object.values(qty).reduce((a, b) => a + b, 0);
+  const agesForOrder = Array.from({ length: total }, (_, i) => ages[i] ?? "");
+  const setAt = (list: string[], i: number, v: string) => { const n = [...list]; n[i] = v; return n; };
   const sum = paymentMethod === "frei" ? 0 : types.reduce((s, t) => s + t.price_cents * (qty[t.id] ?? 0), 0);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (total < 1) return setError("Mindestens ein Ticket wählen.");
     if (total > maxPerOrder) return setError(`Höchstens ${maxPerOrder} Tickets.`);
+    if (agesForOrder.some((a) => !a)) return setError("Bitte für jede Person das Alter angeben.");
     setBusy(true);
     setError(null);
     const res = await fetch("/api/admin/orders", {
@@ -38,7 +43,8 @@ export default function ManualBookingForm({ types, maxPerOrder }: { types: T[]; 
         email,
         relation,
         guestOf: relation === "gast" ? guestOf : null,
-        guestNames: guests.split(/\n|,/).map((g) => g.trim()).filter(Boolean),
+        guestNames: Array.from({ length: Math.max(0, total - 1) }, (_, i) => (guests[i] ?? "").trim()),
+        ageGroups: agesForOrder,
         paymentMethod,
         notes,
         sendMail,
@@ -86,10 +92,20 @@ export default function ManualBookingForm({ types, maxPerOrder }: { types: T[]; 
           <label className="field">Gast von<input type="text" required value={guestOf} onChange={(e) => setGuestOf(e.target.value)} /></label>
         )}
       </div>
-      <label className="field">
-        Namen weiterer Gäste (eine Zeile pro Person)
-        <textarea rows={3} value={guests} onChange={(e) => setGuests(e.target.value)} />
-      </label>
+      {total > 0 && (
+        <div className="grid-2">
+          <AgeSelect label="Alter Besteller/in (am Abiball)" value={agesForOrder[0]} onChange={(v) => setAges(setAt(ages, 0, v))} />
+        </div>
+      )}
+      {Array.from({ length: Math.max(0, total - 1) }).map((_, i) => (
+        <div className="grid-2" key={i}>
+          <label className="field">
+            Gast {i + 2}
+            <input type="text" required maxLength={120} value={guests[i] ?? ""} onChange={(e) => setGuests(setAt(guests, i, e.target.value))} />
+          </label>
+          <AgeSelect label={`Alter Gast ${i + 2}`} value={agesForOrder[i + 1]} onChange={(v) => setAges(setAt(ages, i + 1, v))} />
+        </div>
+      ))}
       <div className="grid-2">
         <label className="field">
           Zahlungsart

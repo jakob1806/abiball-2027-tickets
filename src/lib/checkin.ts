@@ -12,6 +12,8 @@ export interface CheckinResult {
   ticket_number: string | null;
   checked_in_at: string | null;
   checked_in_by_label: string | null;
+  /** Altersgruppe (u16, u18, a18) für die Bändchenfarbe; null bei Altbestellungen */
+  age_group: string | null;
 }
 
 /** Normalisiert gescannten Text (auch Ticket-URLs) auf WG27-XXXX-XXXX-XXXX. */

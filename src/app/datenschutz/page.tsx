@@ -39,14 +39,19 @@ export default function Datenschutz() {
         <li>Name und E-Mail-Adresse der bestellenden Person,</li>
         <li>die Angabe „Abiturient/in“ oder „Gast von …“ mit dem Namen der Abiturientin bzw. des Abiturienten,</li>
         <li>die Namen der weiteren Gäste, für die Tickets bestellt werden,</li>
+        <li>
+          für jedes Ticket die Altersgruppe am Tag des Abiballs (unter 16, 16 oder 17, 18 oder älter); ein Geburtsdatum
+          fragen wir nicht ab,
+        </li>
         <li>Anzahl und Art der Tickets, Betrag, Zahlungsstatus, Bestell- und Zahlungszeitpunkt,</li>
         <li>die Bestätigungen zu Jugendschutz und AGB.</li>
       </ul>
       <p>
         Zweck ist der Abschluss und die Abwicklung des Ticketkaufs, die Ausstellung personalisierter Tickets und die
         Organisation des Abends (Art. 6 Abs. 1 lit. b DSGVO). Die Angabe „Gast von …“ nutzen wir, um die Gäste den
-        Abiturientinnen und Abiturienten zuordnen zu können (Art. 6 Abs. 1 lit. f DSGVO). Ohne diese Angaben können wir
-        keine Tickets ausstellen.
+        Abiturientinnen und Abiturienten zuordnen zu können (Art. 6 Abs. 1 lit. f DSGVO). Die Altersgruppe brauchen wir, um
+        die Vorgaben des Jugendschutzgesetzes am Einlass und an der Bar einzuhalten (Bändchenfarbe, Aufenthalt nach 24 Uhr;
+        Art. 6 Abs. 1 lit. c und f DSGVO). Ohne diese Angaben können wir keine Tickets ausstellen.
       </p>
       <p>
         <strong>Daten weiterer Gäste:</strong> Wenn du Tickets für andere Personen bestellst, erhalten wir deren Namen von
@@ -115,7 +120,8 @@ export default function Datenschutz() {
         Zur Anmeldung vergeben wir persönliche Zugangsdaten (Name, Benutzername, Passwort – gehasht und verschlüsselt gespeichert). Nach
         der Anmeldung liegt ein Anmelde-Token sicher im Schlüsselbund des Geräts. Bei jedem Scan speichern wir, welches
         Konto das Ticket wann eingelassen hat, damit Rückfragen am Einlass geklärt werden können (Art. 6 Abs. 1 lit. f
-        DSGVO). Die Kamera wird nur zum Erkennen der QR-Codes verwendet; Bilder werden weder gespeichert noch übertragen.
+        DSGVO). Das Einlass-Team sieht pro Ticket nur Name, Ticketnummer, Ticketart, Altersgruppe und Einlassstatus, keine
+        E-Mail-Adressen oder Zahlungsdaten. An der Abendkasse erfasst es Name und Altersgruppe laut Ausweis. Die Kamera wird nur zum Erkennen der QR-Codes verwendet; Bilder werden weder gespeichert noch übertragen.
         Die App enthält keine Werbung, kein Tracking und keine Analyse-Dienste. Die Konten löschen wir nach der
         Veranstaltung.
       </p>

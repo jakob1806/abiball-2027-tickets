@@ -26,6 +26,7 @@ export const PAYMENT_LABEL: Record<PaymentMethod, string> = {
   bar: "Bar",
   ueberweisung: "Überweisung",
   frei: "Freiticket",
+  abendkasse: "Abendkasse",
 };
 
 export function relationLabel(relation: string, guestOf: string | null): string {

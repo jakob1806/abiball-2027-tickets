@@ -153,7 +153,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--fg); outlin
 
 /* Admin */
 .admin-top .wrap { height: 60px; }
-.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 32px 0; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin: 32px 0; }
 .stat { border: 1px solid var(--line); border-radius: 14px; padding: 20px; }
 .stat .v { font-size: 36px; font-weight: 700; letter-spacing: -0.04em; line-height: 1.1; }
 .stat .l { font-size: 14px; color: var(--muted); }
@@ -292,3 +292,9 @@ mark.ph { background: #fff1b8; color: inherit; padding: 0 3px; border-radius: 3p
 .scan-type { display: inline-block; margin-top: 10px; padding: 6px 14px; border-radius: 999px; font-weight: 700; font-size: 18px; }
 .scan-type-ball { background: #fff; color: #000; }
 .scan-type-after { background: transparent; color: #fff; border: 2px dashed #fff; }
+
+/* Altersgruppe / Bändchen */
+.age-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 2px 10px 2px 8px; border: 1.5px solid; border-radius: 999px; white-space: nowrap; background: #fff; color: var(--fg); }
+.age-badge.big { font-size: 20px; padding: 6px 16px 6px 12px; border-width: 3px; }
+.age-dot { width: 10px; height: 10px; border-radius: 999px; display: inline-block; }
+.age-badge.big .age-dot { width: 18px; height: 18px; }

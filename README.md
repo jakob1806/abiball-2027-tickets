@@ -18,6 +18,10 @@ Veranstalter ist der Abiturjahrgang 2027 – es handelt sich nicht um eine Schul
 - Admin-Bereich (`/admin`): Kennzahlen, Buchungsliste mit Suche und Filter, stornieren, über Stripe erstatten,
   Mail erneut senden, manuelle Buchung (bar, Überweisung, frei), Excel-Export, Einlass-Scanner mit Handykamera
   und manueller Codeeingabe (erkennt doppelten Einlass)
+- Altersabfrage beim Kauf: für jede Person die Altersgruppe am Tag des Abiballs (unter 16, 16–17, 18+). Scanner,
+  iOS-App, Gästelisten und Excel zeigen daraus die Bändchenfarbe (zentral in `src/lib/event.ts`, `AGE_GROUPS`)
+- Abendkasse im Web-Scanner (`/scanner`, Tab „Abendkasse“): nur Afterparty-Tickets gegen Barzahlung, Gäste sind
+  danach direkt eingelassen, mit Kassenstand und Protokoll, wer verkauft hat
 
 ## Technik
 
@@ -183,6 +187,17 @@ Der Link enthält einen signierten JWT mit Ticket-Klasse und Ticket-Objekten –
 `/admin/scanner` auf dem Handy öffnen (HTTPS nötig für die Kamera), anmelden, **Kamera starten**.
 Grün = Einlass OK, Orange = bereits eingelassen (mit Uhrzeit des ersten Scans), Rot = unbekannt oder storniert.
 Codes können auch manuell eingegeben werden (`WG27-XXXX-XXXX-XXXX`). Jeder Scan wird in `checkins` protokolliert.
+
+Bei gültigen Tickets erscheint groß die Altersgruppe mit Bändchenfarbe (Rot unter 16, Gelb 16–17, Grün 18+).
+Tickets aus der Zeit vor der Altersabfrage zeigen „Alter fehlt“; das Alter lässt sich im Admin unter
+„Daten bearbeiten“ nachtragen.
+
+**Abendkasse:** Im Web-Scanner (`/scanner`) gibt es den Tab „Abendkasse“. Dort verkauft das Einlass-Team nur
+Afterparty-Tickets (`EVENT.doorTicketTypeId`) gegen Bargeld, mit Name und Alter laut Ausweis. Die Gäste sind danach
+direkt eingelassen. Unten steht, wie viel Geld in der Kasse sein sollte. Kontingent und Gesamtkapazität gelten auch
+hier, auch wenn der Online-Verkauf geschlossen ist.
+
+**Migration:** `supabase/migrations/20261116070000_altersgruppen_abendkasse.sql` vor dem Deployment ausführen.
 
 ## Befehle
 

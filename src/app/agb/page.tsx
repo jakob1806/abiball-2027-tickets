@@ -122,6 +122,10 @@ export default function Agb() {
         <li>Branntweinhaltige Getränke werden nur an Volljährige ausgegeben, Bier, Wein und Sekt erst ab 16 Jahren.</li>
       </ul>
       <p>
+        Bei der Bestellung gibst du für jede Person das Alter am Tag des Abiballs an. Am Einlass wird es mit einem amtlichen
+        Lichtbildausweis geprüft; danach gibt es ein Bändchen in der passenden Farbe.
+      </p>
+      <p>
         Mit der Bestellung bestätigst du, diese Regeln zu kennen und deine Gäste darüber zu informieren. Wer gegen die Regeln
         verstößt oder sein Alter nicht nachweisen kann, kann vom Einlass ausgeschlossen oder der Veranstaltung verwiesen
         werden, ohne dass der Ticketpreis erstattet wird.

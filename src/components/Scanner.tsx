@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Html5Qrcode } from "html5-qrcode";
+import AgeBadge from "./AgeBadge";
 
 interface Result {
   result: "ok" | "duplicate" | "invalid" | "cancelled";
@@ -12,6 +13,7 @@ interface Result {
   ticket_number?: string | null;
   checked_in_by_label?: string | null;
   checked_in_at: string | null;
+  age_group?: string | null;
 }
 
 const TITLE: Record<Result["result"], string> = {
@@ -163,6 +165,16 @@ export default function Scanner({
             </div>
           )}
           {result.holder_name && <div style={{ fontSize: 22, marginTop: 8 }}>{result.holder_name}</div>}
+          {(result.result === "ok" || result.result === "duplicate") && (
+            <div style={{ marginTop: 12 }}>
+              <AgeBadge id={result.age_group} big />
+              {result.age_group !== "a18" && (
+                <div style={{ marginTop: 8, fontWeight: 600 }}>
+                  Ausweis prüfen{result.age_group === "u16" ? ", nur mit Begleitperson" : result.age_group === "u18" ? ", ab 24 Uhr nur mit Erziehungsbeauftragung" : ""}.
+                </div>
+              )}
+            </div>
+          )}
           {result.result === "ok" && result.ticket_type_id && result.ticket_type_id !== "ball" && (
             <div style={{ marginTop: 6, fontWeight: 600 }}>Nur Afterparty – Einlass ab 22:30 Uhr</div>
           )}
@@ -207,6 +219,7 @@ export default function Scanner({
                     <td><span className={`badge ${h.result === "ok" ? "ok" : h.result === "duplicate" ? "warn" : "bad"}`}>{TITLE[h.result]}</span></td>
                     <td className="ticket-no small">{h.ticket_number ?? "–"}</td>
                     <td>{h.holder_name ?? "–"}</td>
+                    <td>{h.result === "ok" || h.result === "duplicate" ? <AgeBadge id={h.age_group} /> : null}</td>
                   </tr>
                 ))}
               </tbody>

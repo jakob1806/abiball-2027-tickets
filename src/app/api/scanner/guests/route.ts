@@ -15,7 +15,7 @@ export async function GET(req: Request) {
 
   let query = db()
     .from("tickets")
-    .select("id, ticket_number, holder_name, ticket_type_id, checked_in_at, checked_in_by_label, orders!inner(status)")
+    .select("id, ticket_number, holder_name, ticket_type_id, checked_in_at, checked_in_by_label, age_group, orders!inner(status)")
     .eq("status", "valid")
     .eq("orders.status", "paid");
   if (status === "missing") query = query.is("checked_in_at", null);
@@ -24,12 +24,12 @@ export async function GET(req: Request) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   const guests = (data as unknown as {
-    id: string; ticket_number: string | null; holder_name: string; ticket_type_id: string; checked_in_at: string | null; checked_in_by_label: string | null;
+    id: string; ticket_number: string | null; holder_name: string; ticket_type_id: string; checked_in_at: string | null; checked_in_by_label: string | null; age_group: string | null;
   }[])
     .filter((g) => !q || g.holder_name.toLowerCase().includes(q) || (g.ticket_number ?? "").toLowerCase().includes(q))
     .sort((a, b) => a.holder_name.localeCompare(b.holder_name, "de"))
-    .map(({ id, ticket_number, holder_name, ticket_type_id, checked_in_at, checked_in_by_label }) => ({
-      id, ticket_number, holder_name, ticket_type_id, checked_in_at, checked_in_by_label,
+    .map(({ id, ticket_number, holder_name, ticket_type_id, checked_in_at, checked_in_by_label, age_group }) => ({
+      id, ticket_number, holder_name, ticket_type_id, checked_in_at, checked_in_by_label, age_group,
     }));
   return NextResponse.json({ count: guests.length, guests });
 }

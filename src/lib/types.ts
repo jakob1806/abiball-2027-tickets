@@ -1,5 +1,5 @@
 export type OrderStatus = "pending" | "paid" | "expired" | "cancelled" | "refunded";
-export type PaymentMethod = "stripe" | "bar" | "ueberweisung" | "frei";
+export type PaymentMethod = "stripe" | "bar" | "ueberweisung" | "frei" | "abendkasse";
 
 export interface TicketType {
   id: string;
@@ -27,6 +27,8 @@ export interface Ticket {
   code: string;
   ticket_number: string | null;
   holder_name: string;
+  /** Altersgruppe am Tag des Abiballs: u16, u18 (16–17), a18 (18+). Null bei Altbestellungen. */
+  age_group: string | null;
   status: "valid" | "cancelled";
   checked_in_at: string | null;
   checked_in_by_label: string | null;
@@ -42,6 +44,7 @@ export interface Order {
   relation: "abiturient" | "gast";
   guest_of: string | null;
   guest_names: string[];
+  age_groups: string[];
   youth_protection_ack: boolean;
   terms_ack: boolean;
   payment_method: PaymentMethod;

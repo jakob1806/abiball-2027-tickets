@@ -1,6 +1,6 @@
 import "server-only";
 import { Resend } from "resend";
-import { EVENT } from "./event";
+import { EVENT, VENUE_BRAND } from "./event";
 import { button, esc, heading, infoTable, layout, mapsUrl, noteBox, paragraph, ticketList } from "./mail-layout";
 import type { OrderWithDetails, Ticket, TicketType } from "./types";
 import { optionalEnv, requireEnv, siteUrl } from "./env";
@@ -18,6 +18,7 @@ export async function sendTicketMail(orderId: string): Promise<void> {
   const order = await getOrderById(orderId);
   if (!order) throw new Error("Bestellung nicht gefunden");
   if (order.status !== "paid") throw new Error("Bestellung ist nicht bezahlt");
+  if (!order.email) throw new Error("Keine E-Mail-Adresse hinterlegt (Verkauf an der Abendkasse)");
 
   const types = await ticketTypeMap();
   const tickets = order.tickets.filter((t) => t.status === "valid");
@@ -208,7 +209,7 @@ export function buildTicketMail({
     infoTable([
       ["Datum", esc(EVENT.dateLabel)],
       ["Uhrzeit", onlyAfter ? "22:30 bis 04:00 Uhr" : `${esc(EVENT.timeLabel)}<br><span style="color:#6b6b6b;font-size:13px">Afterparty ab 22:30 Uhr</span>`],
-      ["Ort", `${esc(EVENT.venueName)}<br>${esc(EVENT.venueStreet)}<br>${esc(EVENT.venueCity)}<br><a href="${mapsUrl()}" style="color:#000000;font-size:13px">In Karten öffnen →</a>`],
+      ["Ort", `${esc(EVENT.venueName)}<br>${esc(EVENT.venueStreet)}<br>${esc(EVENT.venueCity)}<br><a href="${VENUE_BRAND.url}" style="color:#000000">${VENUE_BRAND.label} · ${VENUE_BRAND.domain}</a><br><a href="${mapsUrl()}" style="color:#000000;font-size:13px">In Karten öffnen →</a>`],
     ]),
     heading("Deine Bestellung"),
     infoTable([
@@ -236,7 +237,7 @@ export function buildTicketMail({
     ...sorted.map((t) => `- ${t.ticket_number ?? ""} ${types[t.ticket_type_id]?.name ?? t.ticket_type_id}: ${t.holder_name}`),
     "",
     `${EVENT.dateLabel}, ${EVENT.timeLabel}`,
-    `${EVENT.venueName}, ${EVENT.venueStreet}, ${EVENT.venueCity}`,
+    `${EVENT.venueName}, ${EVENT.venueStreet}, ${EVENT.venueCity} · ${VENUE_BRAND.label} · ${VENUE_BRAND.domain}`,
     "",
     `Tickets & QR-Codes: ${orderUrl}`,
     googleWalletUrl ? `Google Wallet: ${googleWalletUrl}` : "",

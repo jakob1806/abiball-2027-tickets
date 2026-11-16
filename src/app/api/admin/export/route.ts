@@ -3,7 +3,7 @@ import { db } from "@/lib/supabase";
 import { requireAdminApi } from "@/lib/admin-auth";
 import { ticketTypeMap } from "@/lib/orders";
 import { PAYMENT_LABEL, STATUS_LABEL, relationLabel } from "@/lib/format";
-import { EVENT } from "@/lib/event";
+import { EVENT, ageGroup } from "@/lib/event";
 import type { OrderWithDetails, Ticket } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -11,6 +11,10 @@ export const dynamic = "force-dynamic";
 
 const fmt = (iso: string | null) => (iso ? new Date(iso).toLocaleString("de-DE", { timeZone: "Europe/Berlin" }) : "");
 const BOLD = { bold: true } as const;
+const bandLabel = (id: string | null) => {
+  const a = ageGroup(id);
+  return a ? `${a.wristband} (${a.short})` : "Alter fehlt";
+};
 const HEAD_FILL: ExcelJS.Fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF000000" } };
 
 function styleHeader(ws: ExcelJS.Worksheet, row = 1) {
@@ -103,6 +107,7 @@ export async function GET() {
       { header: "✓", key: "check", width: 5 },
       { header: "Nr.", key: "nr", width: 9 },
       { header: "Name auf dem Ticket", key: "holder", width: 28 },
+      { header: "Bändchen", key: "band", width: 14 },
       { header: "Bestellt von", key: "buyer", width: 24 },
       { header: "Bezug", key: "rel", width: 26 },
       { header: "Eingecheckt", key: "in", width: 17 },
@@ -114,6 +119,7 @@ export async function GET() {
         check: r.t.checked_in_at ? "✓" : "☐",
         nr: r.t.ticket_number ?? "",
         holder: r.t.holder_name,
+        band: bandLabel(r.t.age_group),
         buyer: r.o.buyer_name,
         rel: relationLabel(r.o.relation, r.o.guest_of),
         in: fmt(r.t.checked_in_at),
@@ -161,6 +167,8 @@ export async function GET() {
     { header: "Nr.", key: "nr", width: 9 },
     { header: "Ticketart", key: "type", width: 18 },
     { header: "Name", key: "holder", width: 26 },
+    { header: "Alter am Abiball", key: "age", width: 16 },
+    { header: "Bändchen", key: "band", width: 10 },
     { header: "Ticketstatus", key: "status", width: 12 },
     { header: "Bestellstatus", key: "ostatus", width: 12 },
     { header: "Eingecheckt", key: "checkin", width: 18 },
@@ -176,6 +184,8 @@ export async function GET() {
       nr: r.t.ticket_number ?? "",
       type: types[r.t.ticket_type_id]?.name ?? r.t.ticket_type_id,
       holder: r.t.holder_name,
+      age: ageGroup(r.t.age_group)?.label ?? "",
+      band: ageGroup(r.t.age_group)?.wristband ?? "",
       status: r.t.status === "valid" ? "Gültig" : "Storniert",
       ostatus: STATUS_LABEL[r.o.status],
       checkin: fmt(r.t.checked_in_at),
