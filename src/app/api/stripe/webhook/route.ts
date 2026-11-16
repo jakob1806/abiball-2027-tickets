@@ -3,7 +3,7 @@ import type Stripe from "stripe";
 import { db } from "@/lib/supabase";
 import { stripe } from "@/lib/stripe";
 import { requireEnv } from "@/lib/env";
-import { sendTicketMail } from "@/lib/mail";
+import { deliverOrQueue, processMailQueue } from "@/lib/mail";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -90,7 +90,12 @@ async function fulfill(session: Stripe.Checkout.Session) {
   if (order && session.amount_total != null && session.amount_total !== order.amount_cents) {
     console.warn(`Betrag weicht ab: Stripe ${session.amount_total} vs. Bestellung ${order.amount_cents} (${orderId})`);
   }
-  if (order && !order.mail_sent_at) await sendTicketMail(orderId);
+  // Bei Fehler (z. B. Tageslimit) landet die Mail in der Warteschlange – Stripe muss nicht erneut senden
+  if (order && !order.mail_sent_at) {
+    const r = await deliverOrQueue(orderId);
+    // Wenn wieder gesendet werden kann, gleich ein paar wartende Mails mitnehmen
+    if (r.status === "sent") await processMailQueue(5).catch((e) => console.error("Warteschlange", e));
+  }
 }
 
 async function markRefunded(paymentIntent: string) {

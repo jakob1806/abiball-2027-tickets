@@ -3,7 +3,7 @@ import { z } from "zod";
 import { db } from "@/lib/supabase";
 import { requireAdminApi } from "@/lib/admin-auth";
 import { reservationErrorMessage } from "@/lib/orders";
-import { sendTicketMail } from "@/lib/mail";
+import { deliverOrQueue } from "@/lib/mail";
 import type { Order } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -51,10 +51,11 @@ export async function POST(req: Request) {
 
   let mailError: string | null = null;
   if (v.sendMail) {
-    try {
-      await sendTicketMail(order.id);
-    } catch (err) {
-      mailError = err instanceof Error ? err.message : "Mailversand fehlgeschlagen";
+    const r = await deliverOrQueue(order.id);
+    if (r.status === "queued") {
+      mailError = r.quotaReached
+        ? "Tageslimit für Mails erreicht – die Mail liegt in der Warteschlange und geht automatisch raus."
+        : `${r.error} – die Mail liegt in der Warteschlange.`;
     }
   }
   return NextResponse.json({ id: order.id, mailError });

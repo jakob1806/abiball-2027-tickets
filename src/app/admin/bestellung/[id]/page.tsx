@@ -48,7 +48,13 @@ export default async function AdminOrder({ params }: { params: { id: string } })
         <div><dt>Weitere Gäste</dt><dd>{order.guest_names.length ? order.guest_names.join(", ") : "–"}</dd></div>
         <div><dt>Angelegt</dt><dd>{dateTime(order.created_at)}</dd></div>
         <div><dt>Bezahlt</dt><dd>{dateTime(order.paid_at)}</dd></div>
-        <div><dt>Mail versendet</dt><dd>{dateTime(order.mail_sent_at)}</dd></div>
+        <div>
+          <dt>Mail versendet</dt>
+          <dd>
+            {order.mail_sent_at ? dateTime(order.mail_sent_at) : order.mail_queued_at ? <span className="badge warn">In Warteschlange seit {dateTime(order.mail_queued_at)}</span> : "–"}
+            {!order.mail_sent_at && order.mail_last_error && <div className="small muted">{order.mail_last_error}</div>}
+          </dd>
+        </div>
         <div><dt>Bestätigungen</dt><dd>Jugendschutz {order.youth_protection_ack ? "✓" : "–"} · AGB {order.terms_ack ? "✓" : "–"}</dd></div>
         <div>
           <dt>Stripe</dt>

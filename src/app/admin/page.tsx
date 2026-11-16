@@ -1,5 +1,6 @@
 import Link from "next/link";
 import SalesChart from "@/components/SalesChart";
+import MailQueuePanel from "@/components/MailQueuePanel";
 import { getStats } from "@/lib/admin-data";
 import { ticketTypeMap } from "@/lib/orders";
 import { dateTime, euro, PAYMENT_LABEL, STATUS_LABEL } from "@/lib/format";
@@ -37,6 +38,8 @@ export default async function AdminDashboard() {
         {stats.salesOpen ? <span className="badge ok">Verkauf offen</span> : <span className="badge bad">Verkauf geschlossen</span>}
         {stats.reservedTickets > 0 && <span className="badge">{stats.reservedTickets} Plätze gerade reserviert</span>}
       </div>
+
+      <MailQueuePanel count={stats.mailQueue} />
 
       <div className="stats">
         <div className="stat"><div className="v">{stats.sold}</div><div className="l">Tickets verkauft · {stats.paidOrders} Bestellungen</div></div>

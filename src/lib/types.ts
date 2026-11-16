@@ -50,6 +50,9 @@ export interface Order {
   cancelled_at: string | null;
   refunded_at: string | null;
   mail_sent_at: string | null;
+  mail_queued_at: string | null;
+  mail_attempts: number;
+  mail_last_error: string | null;
   notes: string | null;
   created_at: string;
 }

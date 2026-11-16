@@ -92,7 +92,7 @@ export async function sendTicketMail(orderId: string): Promise<void> {
   ].join("\n");
 
   const resend = new Resend(requireEnv("RESEND_API_KEY"));
-  const { error } = await resend.emails.send({
+  const payload = {
     from: requireEnv("MAIL_FROM"),
     to: order.email,
     replyTo: optionalEnv("MAIL_REPLY_TO"),
@@ -100,8 +100,85 @@ export async function sendTicketMail(orderId: string): Promise<void> {
     html,
     text,
     attachments,
-  });
-  if (error) throw new Error(`Resend: ${error.message}`);
+  };
+  let { error } = await resend.emails.send(payload);
+  // Kurzzeitiges Ratenlimit (wenige Mails pro Sekunde): einmal kurz warten und erneut senden
+  if (error && /rate_limit/i.test(error.name ?? "")) {
+    await new Promise((r) => setTimeout(r, 1200));
+    ({ error } = await resend.emails.send(payload));
+  }
+  if (error) {
+    const quota = /quota|rate_limit/i.test(`${error.name ?? ""} ${error.message ?? ""}`);
+    throw new MailSendError(`Resend: ${error.message}`, quota);
+  }
 
-  await db().from("orders").update({ mail_sent_at: new Date().toISOString() }).eq("id", order.id);
+  await db()
+    .from("orders")
+    .update({ mail_sent_at: new Date().toISOString(), mail_queued_at: null, mail_last_error: null })
+    .eq("id", order.id);
+}
+
+export class MailSendError extends Error {
+  constructor(message: string, public readonly quotaReached: boolean) {
+    super(message);
+    this.name = "MailSendError";
+  }
+}
+
+export type DeliveryResult = { status: "sent" } | { status: "queued"; quotaReached: boolean; error: string };
+
+/**
+ * Versucht die Ticketmail zu senden. Klappt das nicht (z. B. Tageslimit bei Resend erreicht),
+ * wird die Bestellung in die Warteschlange gelegt und später automatisch erneut versucht.
+ */
+export async function deliverOrQueue(orderId: string): Promise<DeliveryResult> {
+  try {
+    await sendTicketMail(orderId);
+    return { status: "sent" };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    const quotaReached = err instanceof MailSendError && err.quotaReached;
+    const { data } = await db().from("orders").select("mail_queued_at, mail_attempts").eq("id", orderId).single();
+    await db()
+      .from("orders")
+      .update({
+        mail_queued_at: data?.mail_queued_at ?? new Date().toISOString(),
+        mail_attempts: (data?.mail_attempts ?? 0) + 1,
+        mail_last_error: message.slice(0, 500),
+      })
+      .eq("id", orderId);
+    console.warn(`Mail für ${orderId} in Warteschlange: ${message}`);
+    return { status: "queued", quotaReached, error: message };
+  }
+}
+
+/** Arbeitet die Warteschlange ab (älteste zuerst). Stoppt, sobald das Limit wieder greift. */
+export async function processMailQueue(max = 50): Promise<{ sent: number; remaining: number; stoppedByQuota: boolean }> {
+  const { data, error } = await db()
+    .from("orders")
+    .select("id")
+    .eq("status", "paid")
+    .is("mail_sent_at", null)
+    .not("mail_queued_at", "is", null)
+    .order("mail_queued_at", { ascending: true })
+    .limit(max);
+  if (error) throw error;
+
+  let sent = 0;
+  let stoppedByQuota = false;
+  for (const { id } of data ?? []) {
+    const r = await deliverOrQueue(id);
+    if (r.status === "sent") sent += 1;
+    else if (r.quotaReached) {
+      stoppedByQuota = true;
+      break;
+    }
+  }
+  const { count } = await db()
+    .from("orders")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "paid")
+    .is("mail_sent_at", null)
+    .not("mail_queued_at", "is", null);
+  return { sent, remaining: count ?? 0, stoppedByQuota };
 }
