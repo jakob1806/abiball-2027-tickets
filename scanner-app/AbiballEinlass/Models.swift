@@ -19,6 +19,9 @@ struct CheckinResponse: Decodable, Equatable {
     var code: String?
     /// Altersgruppe (u16, u18, a18) für die Bändchenfarbe; fehlt bei älteren Server-Versionen.
     var age_group: String? = nil
+    /// Bändchen laut Admin-Einstellungen (Name und Farbe als #rrggbb)
+    var wristband_name: String? = nil
+    var wristband_color: String? = nil
 }
 
 struct Stats: Decodable, Equatable {
@@ -46,6 +49,9 @@ struct Guest: Decodable, Identifiable, Equatable {
     let checked_in_by_label: String?
     /// Altersgruppe (u16, u18, a18) für die Bändchenfarbe; fehlt bei älteren Server-Versionen.
     var age_group: String? = nil
+    /// Bändchen laut Admin-Einstellungen (Name und Farbe als #rrggbb)
+    var wristband_name: String? = nil
+    var wristband_color: String? = nil
 }
 
 struct GuestsResponse: Decodable {

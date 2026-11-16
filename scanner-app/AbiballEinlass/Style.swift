@@ -28,8 +28,8 @@ struct TicketBadge: View {
         let label = name ?? (kind == .afterparty ? "Afterparty" : kind == .ball ? "Ball" : "Ticket")
         let fs: CGFloat = large ? 18 : 12
         let isAP = kind == .afterparty
-        let fg: Color = isAP ? .white : (onColor ? .black : .white)
-        let bg: Color = isAP ? Color(white: onColor ? 0.22 : 0.25) : (onColor ? .white : .black)
+        let fg: Color = isAP ? .white : (onColor ? .black : Color(uiColor: .systemBackground))
+        let bg: Color = isAP ? Color(white: onColor ? 0.22 : 0.38) : (onColor ? .white : .primary)
         Text(label).font(.system(size: fs, weight: .bold))
         .foregroundStyle(fg)
         .padding(.horizontal, large ? 12 : 8).padding(.vertical, large ? 6 : 4)
@@ -86,21 +86,65 @@ enum AgeGroup: String {
 /// Zeigt nichts, solange der Server keine Altersgruppe liefert (ältere Server-Version oder Altbestand).
 struct AgeBandBadge: View {
     let id: String?
+    /// Vom Server (Admin-Einstellungen); sonst Standardfarbe
+    var name: String? = nil
+    var colorHex: String? = nil
     var large = false
 
     var body: some View {
         if let g = AgeGroup(id) {
+            let band = name ?? g.wristband
+            let color = colorHex.flatMap(Color.init(hex:)) ?? g.color
             let fs: CGFloat = large ? 20 : 12
             HStack(spacing: large ? 8 : 5) {
-                Circle().fill(g.color).frame(width: large ? 16 : 9, height: large ? 16 : 9)
-                Text("\(g.short) · \(g.wristband)").font(.system(size: fs, weight: .bold))
+                Circle().fill(color).frame(width: large ? 16 : 9, height: large ? 16 : 9)
+                Text(large ? "Bändchen \(band) · \(g.short)" : "\(g.short) · \(band)").font(.system(size: fs, weight: .bold))
             }
             .foregroundStyle(.black)
             .padding(.horizontal, large ? 14 : 8).padding(.vertical, large ? 7 : 3)
             .background(Capsule().fill(.white))
-            .overlay(Capsule().stroke(g.color, lineWidth: large ? 3 : 1.5))
+            .overlay(Capsule().stroke(color, lineWidth: large ? 3 : 1.5))
             .accessibilityElement(children: .ignore)
-            .accessibilityLabel("Bändchen \(g.wristband), Alter \(g.short)")
+            .accessibilityLabel("Bändchen \(band), Alter \(g.short)")
+        }
+    }
+}
+
+extension Color {
+    /// Farbe aus „#rrggbb“ (vom Server).
+    init?(hex: String) {
+        var h = hex.trimmingCharacters(in: .whitespaces)
+        if h.hasPrefix("#") { h.removeFirst() }
+        guard h.count == 6, let v = UInt32(h, radix: 16) else { return nil }
+        self.init(red: Double((v >> 16) & 0xff) / 255, green: Double((v >> 8) & 0xff) / 255, blue: Double(v & 0xff) / 255)
+    }
+}
+
+// MARK: - Liquid Glass (iOS 26) mit Material-Fallback
+
+extension View {
+    /// Glasfläche in Apple-Optik (iOS 26 Liquid Glass, sonst ultraThinMaterial).
+    @ViewBuilder func glassPanel(cornerRadius: CGFloat = 24, tint: Color? = nil) -> some View {
+        if #available(iOS 26.0, *) {
+            glassEffect(tint.map { .regular.tint($0) } ?? .regular, in: .rect(cornerRadius: cornerRadius))
+        } else {
+            background(.ultraThinMaterial, in: .rect(cornerRadius: cornerRadius))
+        }
+    }
+
+    @ViewBuilder func glassCapsule() -> some View {
+        if #available(iOS 26.0, *) {
+            glassEffect(.regular, in: .capsule)
+        } else {
+            background(.ultraThinMaterial, in: .capsule)
+        }
+    }
+
+    @ViewBuilder func glassButtonStyle(prominent: Bool = false) -> some View {
+        if #available(iOS 26.0, *) {
+            if prominent { buttonStyle(.glassProminent) } else { buttonStyle(.glass) }
+        } else {
+            if prominent { buttonStyle(.borderedProminent) } else { buttonStyle(.bordered) }
         }
     }
 }

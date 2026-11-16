@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/supabase";
 import { requireScanner } from "@/lib/scanner-api";
 import { performCheckin } from "@/lib/checkin";
+import { getWristbands, wristbandFor } from "@/lib/wristbands";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,5 +18,7 @@ export async function POST(req: Request) {
     code = data?.code ?? null;
   }
   if (!code || code.length > 200) return NextResponse.json({ error: "Kein Code" }, { status: 400 });
-  return NextResponse.json(await performCheckin(code, scanner!));
+  const [result, bands] = await Promise.all([performCheckin(code, scanner!), getWristbands()]);
+  const w = wristbandFor(bands, result.age_group);
+  return NextResponse.json({ ...result, wristband_name: w?.name ?? null, wristband_color: w?.color ?? null });
 }

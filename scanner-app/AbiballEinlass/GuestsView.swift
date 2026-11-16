@@ -14,7 +14,7 @@ struct GuestsView: View {
         List {
             Section {
                 Picker("Anzeige", selection: $status) {
-                    Text("Noch nicht da").tag("missing")
+                    Text("Fehlen noch").tag("missing")
                     Text("Drin").tag("in")
                     Text("Alle").tag("all")
                 }
@@ -27,6 +27,7 @@ struct GuestsView: View {
                     ResultCard(result: lastResult, onDismiss: { withAnimation { self.lastResult = nil } }, onRetry: {
                         if case .failure(_, .ticket(let id)) = lastResult, let g = guests.first(where: { $0.id == id }) { checkin(g) }
                     })
+                    .onTapGesture { withAnimation { self.lastResult = nil } }
                     .listRowInsets(EdgeInsets())
                     .listRowBackground(Color.clear)
                 }
@@ -44,7 +45,7 @@ struct GuestsView: View {
             }
         }
         .listStyle(.insetGrouped)
-        .navigationTitle("Noch nicht da")
+        .navigationTitle("Gäste")
         .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Name oder Ticketnummer")
         .autocorrectionDisabled()
         .toolbar { ToolbarItem(placement: .topBarTrailing) { AccountMenu() } }
@@ -81,7 +82,7 @@ struct GuestsView: View {
                     Text(g.ticket_number ?? "–").font(.subheadline.monospacedDigit().weight(.semibold))
                     TicketBadge(typeId: g.ticket_type_id, name: nil)
                 }
-                AgeBandBadge(id: g.age_group)
+                AgeBandBadge(id: g.age_group, name: g.wristband_name, colorHex: g.wristband_color)
                 if g.checked_in_at != nil {
                     let who = g.checked_in_by_label.map { " · \($0)" } ?? ""
                     Text("Drin seit \(Fmt.time(g.checked_in_at) ?? "–")\(who)")
@@ -151,7 +152,7 @@ struct ConfirmSheet: View {
                     TicketBadge(typeId: guest.ticket_type_id, name: nil)
                 }
                 if let age = AgeGroup(guest.age_group) {
-                    AgeBandBadge(id: guest.age_group, large: true)
+                    AgeBandBadge(id: guest.age_group, name: guest.wristband_name, colorHex: guest.wristband_color, large: true)
                     if let hint = age.hint {
                         Text(hint).font(.subheadline.weight(.semibold)).multilineTextAlignment(.center)
                     }

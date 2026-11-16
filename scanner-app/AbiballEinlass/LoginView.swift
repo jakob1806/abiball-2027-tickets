@@ -90,6 +90,7 @@ struct LoginView: View {
             .frame(maxWidth: .infinity)
         }
         .scrollDismissesKeyboard(.interactively)
+        .preferredColorScheme(.light)
         .sheet(isPresented: $showContact) {
             NavigationStack { ContactView(showsDone: true) }
         }

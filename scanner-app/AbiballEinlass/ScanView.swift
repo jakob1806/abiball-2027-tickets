@@ -14,26 +14,71 @@ struct ScanView: View {
     @State private var manualCode = ""
     @State private var cameraStatus = AVCaptureDevice.authorizationStatus(for: .video)
     @State private var resultID = 0
+    @State private var showStats = false
 
     var body: some View {
-        VStack(spacing: 12) {
-            ScreenHeader(title: "Einlass")
-            StatsBar()
-            camera
-                .frame(maxWidth: .infinity)
-                .frame(minHeight: 200)
-                .clipShape(RoundedRectangle(cornerRadius: 22))
-                .overlay(alignment: .bottomTrailing) { cameraButtons }
-                .overlay { if busy { ProgressView().controlSize(.large).tint(.white) } }
-            resultArea
+        ZStack {
+            camera.ignoresSafeArea()
+
+            // Mitte: Scan-Quadrat mit kleinen Symbolen darunter
+            VStack(spacing: 22) {
+                ViewfinderFrame().frame(width: 250, height: 250)
+                    .opacity(cameraLive ? 1 : 0.35)
+                    .overlay { if busy { ProgressView().controlSize(.large).tint(.white) } }
+                    .allowsHitTesting(false)
+                controls
+                if !cameraLive {
+                    Text(hintText).font(.footnote).foregroundStyle(.white.opacity(0.6))
+                }
+            }
+
+            VStack(spacing: 12) {
+                // Oben: Zahlen und Konto
+                HStack(alignment: .top, spacing: 10) {
+                    Button { showStats = true } label: { StatsPill() }
+                        .buttonStyle(.plain)
+                        .accessibilityHint("Zeigt die Details")
+                    Spacer(minLength: 0)
+                    AccountMenu()
+                }
+                Spacer(minLength: 0)
+                // Unten: Ergebnis (Kamera scannt währenddessen weiter)
+                if let outcome {
+                    ResultCard(
+                        result: outcome,
+                        onRetry: { if case .failure(_, let retry) = outcome { send(retry) } }
+                    )
+                    .id(resultID)
+                    .onTapGesture { withAnimation(.snappy) { self.outcome = nil } }
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.bottom, 8)
         }
-        .padding(.horizontal, 16)
-        .padding(.bottom, 8)
+        .task(id: resultID) {
+            // Grünes Ergebnis blendet sich von selbst aus; Warnungen bleiben bis zum nächsten Scan stehen.
+            guard case .response(let r)? = outcome, r.result == "ok" else { return }
+            try? await Task.sleep(for: .seconds(3))
+            guard !Task.isCancelled else { return }
+            withAnimation(.snappy) { outcome = nil }
+        }
         .toolbar(.hidden, for: .navigationBar)
+        .sheet(isPresented: $showStats) {
+            StatsDetailView()
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
+        }
         .alert("Code eingeben", isPresented: $manualOpen) {
             TextField("WG27-XXXX-XXXX-XXXX", text: $manualCode)
                 .textInputAutocapitalization(.characters)
                 .autocorrectionDisabled()
+                .onSubmit {
+                    let c = manualCode.trimmingCharacters(in: .whitespacesAndNewlines)
+                    manualCode = ""
+                    manualOpen = false
+                    if !c.isEmpty { send(.code(c)) }
+                }
             Button("Prüfen") {
                 let c = manualCode.trimmingCharacters(in: .whitespacesAndNewlines)
                 manualCode = ""
@@ -53,85 +98,53 @@ struct ScanView: View {
         .onChange(of: active) { _, isActive in if !isActive { torch = false } }
     }
 
+    private var hintText: String {
+        if !QRScanner.hasCamera { return "Keine Kamera" }
+        if cameraStatus == .denied || cameraStatus == .restricted { return "Kein Kamerazugriff" }
+        return ""
+    }
+
+    private var cameraLive: Bool { QRScanner.hasCamera && cameraStatus == .authorized }
+
+    /// Zwei kleine runde Glas-Symbole: Code eintippen und Taschenlampe.
+    private var controls: some View {
+        HStack(spacing: 18) {
+            iconButton("keyboard", label: "Code eingeben") { manualOpen = true }
+            iconButton(torch ? "flashlight.on.fill" : "flashlight.off.fill",
+                       label: torch ? "Taschenlampe aus" : "Taschenlampe an",
+                       tint: torch ? .yellow : .white) { torch.toggle() }
+                .disabled(!cameraLive)
+                .opacity(cameraLive ? 1 : 0.4)
+            if cameraStatus == .denied || cameraStatus == .restricted {
+                iconButton("gearshape", label: "Einstellungen öffnen") {
+                    if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
+                }
+            }
+        }
+    }
+
+    private func iconButton(_ icon: String, label: String, tint: Color = .white, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: icon).font(.system(size: 17, weight: .medium)).frame(width: 26, height: 26)
+        }
+        .buttonBorderShape(.circle)
+        .controlSize(.large)
+        .tint(tint)
+        .glassButtonStyle()
+        .accessibilityLabel(label)
+    }
+
     private var cameraRunning: Bool { active && scenePhase == .active && !manualOpen }
 
     @ViewBuilder private var camera: some View {
-        if !QRScanner.hasCamera {
-            placeholder(icon: "camera.fill", text: "Keine Kamera verfügbar.\nBitte Code manuell eingeben.")
-        } else if cameraStatus == .denied || cameraStatus == .restricted {
-            VStack(spacing: 12) {
-                placeholder(icon: "camera.badge.ellipsis", text: "Kein Zugriff auf die Kamera.")
-                Button("Einstellungen öffnen") {
-                    if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
-                }
-                .buttonStyle(BlackButtonStyle(inverted: true)).frame(width: 240)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color.black)
-        } else if cameraStatus == .authorized {
+        if QRScanner.hasCamera && cameraStatus == .authorized {
             ZStack {
                 QRScanner(active: cameraRunning, torch: torch && cameraRunning, onCode: handleScan)
-                ViewfinderFrame().padding(40).allowsHitTesting(false)
             }
         } else {
-            Color.black
-        }
-    }
-
-    private func placeholder(icon: String, text: String) -> some View {
-        VStack(spacing: 10) {
-            Image(systemName: icon).font(.system(size: 36))
-            Text(text).font(.headline).multilineTextAlignment(.center)
-        }
-        .foregroundStyle(.white.opacity(0.85))
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.black)
-    }
-
-    private var cameraButtons: some View {
-        HStack(spacing: 10) {
-            Button { manualOpen = true } label: {
-                Label("Code eingeben", systemImage: "keyboard")
-                    .font(.subheadline.weight(.semibold))
-                    .padding(.horizontal, 14).padding(.vertical, 10)
-                    .background(Capsule().fill(.white))
-                    .foregroundStyle(.black)
+            ZStack {
+                LinearGradient(colors: [Color(white: 0.16), Color(white: 0.04)], startPoint: .top, endPoint: .bottom)
             }
-            if QRScanner.hasCamera && cameraStatus == .authorized {
-                Button { torch.toggle() } label: {
-                    Image(systemName: torch ? "flashlight.on.fill" : "flashlight.off.fill")
-                        .font(.system(size: 18, weight: .semibold))
-                        .frame(width: 44, height: 44)
-                        .background(Circle().fill(torch ? Color.yellow : .white))
-                        .foregroundStyle(.black)
-                }
-                .accessibilityLabel(torch ? "Taschenlampe aus" : "Taschenlampe an")
-            }
-        }
-        .padding(12)
-    }
-
-    @ViewBuilder private var resultArea: some View {
-        if let outcome {
-            ResultCard(
-                result: outcome,
-                onDismiss: { withAnimation { self.outcome = nil } },
-                onRetry: { if case .failure(_, let retry) = outcome { send(retry) } }
-            )
-            .id(resultID)
-            .transition(.scale(scale: 0.96).combined(with: .opacity))
-        } else {
-            HStack(spacing: 12) {
-                Image(systemName: "qrcode.viewfinder").font(.system(size: 26, weight: .medium))
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Bereit zum Scannen").font(.headline).foregroundStyle(.primary)
-                    Text("QR-Code in den Rahmen halten").font(.subheadline)
-                }
-                Spacer(minLength: 0)
-            }
-            .foregroundStyle(.secondary)
-            .padding(16)
-            .background(RoundedRectangle(cornerRadius: 20).fill(Color(white: 0.96)))
         }
     }
 
@@ -187,7 +200,7 @@ struct ViewfinderFrame: View {
                 p.move(to: CGPoint(x: r.minX, y: r.maxY - l)); p.addLine(to: CGPoint(x: r.minX, y: r.maxY)); p.addLine(to: CGPoint(x: r.minX + l, y: r.maxY))
                 p.move(to: CGPoint(x: r.maxX - l, y: r.maxY)); p.addLine(to: CGPoint(x: r.maxX, y: r.maxY)); p.addLine(to: CGPoint(x: r.maxX, y: r.maxY - l))
             }
-            .stroke(Color.white, style: StrokeStyle(lineWidth: 5, lineCap: .round, lineJoin: .round))
+            .stroke(Color.white, style: StrokeStyle(lineWidth: 4, lineCap: .round, lineJoin: .round))
         }
     }
 }

@@ -1,14 +1,17 @@
 import SettingsForm from "@/components/SettingsForm";
+import WristbandForm from "@/components/WristbandForm";
+import { getWristbands } from "@/lib/wristbands";
 import { db } from "@/lib/supabase";
 import { getAvailability, getTicketTypes } from "@/lib/orders";
 
 export const dynamic = "force-dynamic";
 
 export default async function SettingsPage() {
-  const [types, avail, { data: settings }] = await Promise.all([
+  const [types, avail, { data: settings }, wristbands] = await Promise.all([
     getTicketTypes(false),
     getAvailability(),
     db().from("settings").select("total_capacity, max_per_order, sales_open, prices_final, bank_transfer_enabled, bank_account_holder, bank_iban, bank_bic, bank_name, transfer_days").single(),
+    getWristbands(),
   ]);
   return (
     <main className="wrap narrow" style={{ paddingTop: 32, paddingBottom: 64 }}>
@@ -29,6 +32,7 @@ export default async function SettingsPage() {
         }}
         initialTypes={types.map((t) => ({ ...t, free: avail.perType[t.id] ?? 0 }))}
       />
+      <WristbandForm initial={wristbands} />
     </main>
   );
 }

@@ -10,7 +10,7 @@ struct MainView: View {
                 .tabItem { Label("Scannen", systemImage: "qrcode.viewfinder") }
                 .tag(0)
             NavigationStack { GuestsView() }
-                .tabItem { Label("Noch nicht da", systemImage: "person.crop.circle.badge.questionmark") }
+                .tabItem { Label("Gäste", systemImage: "person.2") }
                 .tag(1)
             NavigationStack { ContactView() }
                 .tabItem { Label("Kontakt", systemImage: "person.crop.circle") }
@@ -23,6 +23,7 @@ struct MainView: View {
                 try? await Task.sleep(for: .seconds(Config.statsInterval))
             }
         }
+        .preferredColorScheme(tab == 1 ? .light : .dark)
         .onAppear { UIApplication.shared.isIdleTimerDisabled = true }
         .onDisappear { UIApplication.shared.isIdleTimerDisabled = false }
     }
@@ -57,9 +58,9 @@ struct AccountMenu: View {
         } label: {
             Text(initials)
                 .font(.system(size: 15, weight: .bold))
-                .foregroundStyle(.white)
+                .foregroundStyle(Color(uiColor: .systemBackground))
                 .frame(width: 40, height: 40)
-                .background(Circle().fill(Color.black))
+                .background(Circle().fill(Color.primary))
                 .accessibilityLabel("Konto: \(model.name)")
         }
         .confirmationDialog("Wirklich abmelden?", isPresented: $confirmLogout, titleVisibility: .visible) {

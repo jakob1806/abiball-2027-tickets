@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/supabase";
 import { requireScanner } from "@/lib/scanner-api";
+import { getWristbands, wristbandFor } from "@/lib/wristbands";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,7 +21,7 @@ export async function GET(req: Request) {
     .eq("orders.status", "paid");
   if (status === "missing") query = query.is("checked_in_at", null);
   if (status === "in") query = query.not("checked_in_at", "is", null);
-  const { data, error } = await query;
+  const [{ data, error }, bands] = await Promise.all([query, getWristbands()]);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   const guests = (data as unknown as {
@@ -30,6 +31,8 @@ export async function GET(req: Request) {
     .sort((a, b) => a.holder_name.localeCompare(b.holder_name, "de"))
     .map(({ id, ticket_number, holder_name, ticket_type_id, checked_in_at, checked_in_by_label, age_group }) => ({
       id, ticket_number, holder_name, ticket_type_id, checked_in_at, checked_in_by_label, age_group,
+      wristband_name: wristbandFor(bands, age_group)?.name ?? null,
+      wristband_color: wristbandFor(bands, age_group)?.color ?? null,
     }));
   return NextResponse.json({ count: guests.length, guests });
 }

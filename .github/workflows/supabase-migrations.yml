@@ -1,0 +1,78 @@
+# Spielt neue Datenbank-Migrationen (supabase/migrations) automatisch in die Produktions-Datenbank ein.
+#
+# Benötigt das Repository-Secret SUPABASE_DB_URL:
+#   Supabase → Project Settings → Database → Connection string → „Session pooler“ (URI),
+#   Passwort eingesetzt und URL-kodiert, z. B.
+#   postgresql://postgres.<ref>:<passwort>@aws-0-eu-central-1.pooler.supabase.com:5432/postgres
+#
+# Pull Requests: Probelauf (zeigt nur, welche Migrationen fehlen würden).
+# Push auf main: Migrationen werden eingespielt.
+# Einmalig nach der Einrichtung: manuell starten mit „baseline“, um die bereits von Hand
+# ausgeführten Migrationen als erledigt zu markieren.
+name: Supabase-Migrationen
+
+on:
+  push:
+    branches: [main]
+    paths: ["supabase/migrations/**"]
+  pull_request:
+    paths: ["supabase/migrations/**"]
+  workflow_dispatch:
+    inputs:
+      baseline:
+        description: "Versionen, die schon von Hand ausgeführt wurden (Leerzeichen-getrennt), werden nur als erledigt markiert"
+        required: false
+        default: ""
+
+concurrency:
+  group: supabase-migrations
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.109.1
+
+      - name: Secret prüfen
+        id: secret
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          if [ -n "$DB_URL" ]; then echo "ok=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+          echo "ok=false" >> "$GITHUB_OUTPUT"
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "::warning::Secret SUPABASE_DB_URL fehlt – Probelauf übersprungen."
+          else
+            echo "::error::Secret SUPABASE_DB_URL fehlt (Settings → Secrets and variables → Actions)."
+            exit 1
+          fi
+
+      - name: Bereits ausgeführte Migrationen markieren (Baseline)
+        if: github.event_name == 'workflow_dispatch' && inputs.baseline != ''
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: supabase migration repair --db-url "$DB_URL" --status applied ${{ inputs.baseline }}
+
+      - name: Stand anzeigen
+        if: steps.secret.outputs.ok == 'true'
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: supabase migration list --db-url "$DB_URL"
+
+      - name: Probelauf (Pull Request)
+        if: github.event_name == 'pull_request' && steps.secret.outputs.ok == 'true'
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: supabase db push --db-url "$DB_URL" --dry-run
+
+      - name: Migrationen einspielen
+        if: github.event_name != 'pull_request'
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: supabase db push --db-url "$DB_URL" --yes
