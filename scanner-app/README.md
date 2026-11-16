@@ -6,6 +6,9 @@ Bundle-ID `de.abiballwbg.scanner`, Team `DVH3MYQ64A`, automatische Signierung.
 - Server-Adresse: `AbiballEinlass/Config.swift` → `Config.baseURL` (für eigene Domain nur dort ändern)
 - Projekt wird aus `project.yml` erzeugt: `xcodegen generate` (nach neuen Dateien)
 - Simulator-Test ohne Konto: Debug-Build mit Startargument `-demo` (Beispieldaten; im Release nicht enthalten)
+  - Bändchen testen: manuell einen Code mit „U16“ eingeben (rotes Bändchen), mit „AP“ (Afterparty, gelb), sonst grün;
+    der Tab „Noch nicht da“ zeigt alle drei Farben
+- Bändchenfarben stehen in `Style.swift` (`AgeGroup`) und müssen zu `AGE_GROUPS` in `src/lib/event.ts` passen
 
 ## Bauen
 

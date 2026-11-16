@@ -61,10 +61,16 @@ struct GuestsView: View {
             } onCancel: {
                 confirmGuest = nil
             }
-            .presentationDetents([.height(340)])
+            .presentationDetents([.height(confirmHeight(g))])
             .presentationCornerRadius(28)
             .presentationBackground(Color.white)
         }
+    }
+
+    /// Höhe des Bestätigungsblatts: mehr Platz, wenn Bändchen und Hinweis angezeigt werden.
+    private func confirmHeight(_ g: Guest) -> CGFloat {
+        guard let age = AgeGroup(g.age_group) else { return 340 }
+        return age.hint == nil ? 400 : 440
     }
 
     private func row(_ g: Guest) -> some View {
@@ -75,6 +81,7 @@ struct GuestsView: View {
                     Text(g.ticket_number ?? "–").font(.subheadline.monospacedDigit().weight(.semibold))
                     TicketBadge(typeId: g.ticket_type_id, name: nil)
                 }
+                AgeBandBadge(id: g.age_group)
                 if g.checked_in_at != nil {
                     let who = g.checked_in_by_label.map { " · \($0)" } ?? ""
                     Text("Drin seit \(Fmt.time(g.checked_in_at) ?? "–")\(who)")
@@ -142,6 +149,12 @@ struct ConfirmSheet: View {
                 HStack(spacing: 8) {
                     Text(guest.ticket_number ?? "–").font(.headline.monospacedDigit())
                     TicketBadge(typeId: guest.ticket_type_id, name: nil)
+                }
+                if let age = AgeGroup(guest.age_group) {
+                    AgeBandBadge(id: guest.age_group, large: true)
+                    if let hint = age.hint {
+                        Text(hint).font(.subheadline.weight(.semibold)).multilineTextAlignment(.center)
+                    }
                 }
                 if TicketKind(guest.ticket_type_id) == .afterparty {
                     Text("Nur Afterparty – Einlass ab 22:30 Uhr")
