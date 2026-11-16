@@ -106,6 +106,7 @@ export async function GET() {
       { header: "Bestellt von", key: "buyer", width: 24 },
       { header: "Bezug", key: "rel", width: 26 },
       { header: "Eingecheckt", key: "in", width: 17 },
+      { header: "Eingelassen von", key: "by", width: 18 },
       { header: "Ticketcode", key: "code", width: 22 },
     ];
     for (const r of validTickets.filter((x) => x.t.ticket_type_id === tt.id).sort(byNumber)) {
@@ -116,6 +117,7 @@ export async function GET() {
         buyer: r.o.buyer_name,
         rel: relationLabel(r.o.relation, r.o.guest_of),
         in: fmt(r.t.checked_in_at),
+        by: r.t.checked_in_by_label ?? "",
         code: r.t.code,
       });
       row.getCell("check").alignment = { horizontal: "center" };
@@ -162,6 +164,7 @@ export async function GET() {
     { header: "Ticketstatus", key: "status", width: 12 },
     { header: "Bestellstatus", key: "ostatus", width: 12 },
     { header: "Eingecheckt", key: "checkin", width: 18 },
+    { header: "Eingelassen von", key: "by", width: 18 },
     { header: "Besteller/in", key: "buyer", width: 24 },
     { header: "E-Mail", key: "email", width: 30 },
     { header: "Bezug", key: "rel", width: 26 },
@@ -176,6 +179,7 @@ export async function GET() {
       status: r.t.status === "valid" ? "Gültig" : "Storniert",
       ostatus: STATUS_LABEL[r.o.status],
       checkin: fmt(r.t.checked_in_at),
+      by: r.t.checked_in_by_label ?? "",
       buyer: r.o.buyer_name,
       email: r.o.email,
       rel: relationLabel(r.o.relation, r.o.guest_of),

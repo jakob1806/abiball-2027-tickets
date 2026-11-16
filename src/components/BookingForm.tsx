@@ -143,7 +143,7 @@ export default function BookingForm({ types, maxPerOrder, salesOpen, preview = f
               <div className="grid-2">
                 {Array.from({ length: guestCount }).map((_, i) => (
                   <label className="field" key={i}>
-                    Gast {i + 2}
+                    Gast {i + 2}: Vor- und Nachname
                     <input
                       type="text"
                       required

@@ -12,7 +12,11 @@ import { getAvailability } from "@/lib/orders";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const name = z.string().trim().min(2, "Bitte gib einen Namen an.").max(120);
+const name = z
+  .string()
+  .trim()
+  .max(120)
+  .refine((v) => /^\S{2,}(\s+\S+)+$/.test(v), "Bitte jeweils Vor- und Nachname angeben.");
 
 const schema = z
   .object({

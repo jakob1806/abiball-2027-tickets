@@ -87,7 +87,7 @@ export default async function AdminOrder({ params }: { params: { id: string } })
       <h2 className="h3">Tickets</h2>
       <div className="table-wrap">
         <table>
-          <thead><tr><th>Nr.</th><th>Art</th><th>Name</th><th>Code</th><th>Status</th><th>Eingecheckt</th></tr></thead>
+          <thead><tr><th>Nr.</th><th>Art</th><th>Name</th><th>Code</th><th>Status</th><th>Eingecheckt</th><th>Von</th></tr></thead>
           <tbody>
             {order.tickets.map((t) => (
               <tr key={t.id}>
@@ -97,9 +97,10 @@ export default async function AdminOrder({ params }: { params: { id: string } })
                 <td className="mono small"><a href={`/ticket/${t.code}`} target="_blank">{t.code}</a></td>
                 <td>{t.status === "valid" ? <span className="badge ok">Gültig</span> : <span className="badge bad">Storniert</span>}</td>
                 <td>{dateTime(t.checked_in_at)}</td>
+                <td className="small">{t.checked_in_by_label ?? "–"}</td>
               </tr>
             ))}
-            {order.tickets.length === 0 && <tr><td colSpan={6} className="muted">Noch keine Tickets (erst nach Zahlung).</td></tr>}
+            {order.tickets.length === 0 && <tr><td colSpan={7} className="muted">Noch keine Tickets (erst nach Zahlung).</td></tr>}
           </tbody>
         </table>
       </div>

@@ -85,7 +85,7 @@ export async function getStats() {
 export async function getGuestList() {
   const { data, error } = await db()
     .from("tickets")
-    .select("id, code, ticket_number, holder_name, ticket_type_id, checked_in_at, orders!inner(id, buyer_name, email, relation, guest_of, status)")
+    .select("id, code, ticket_number, holder_name, ticket_type_id, checked_in_at, checked_in_by_label, orders!inner(id, buyer_name, email, relation, guest_of, status)")
     .eq("status", "valid")
     .eq("orders.status", "paid");
   if (error) throw error;
@@ -96,6 +96,7 @@ export async function getGuestList() {
     holder_name: string;
     ticket_type_id: string;
     checked_in_at: string | null;
+    checked_in_by_label: string | null;
     orders: { id: string; buyer_name: string; email: string; relation: string; guest_of: string | null; status: string };
   };
   return (data as unknown as Row[]).sort((a, b) => a.holder_name.localeCompare(b.holder_name, "de"));

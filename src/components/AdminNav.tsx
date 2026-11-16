@@ -29,6 +29,7 @@ export default function AdminNav() {
           {link("/admin/gaesteliste", "Gästeliste")}
           {link("/admin/neu", "Neue Buchung")}
           {link("/admin/scanner", "Einlass")}
+          {link("/admin/team", "Team")}
           {link("/admin/einstellungen", "Einstellungen")}
           <a href="/api/admin/export">Excel</a>
           <button onClick={logout} style={{ background: "none", border: 0, font: "inherit", color: "var(--muted)", cursor: "pointer", padding: 0 }}>

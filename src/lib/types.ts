@@ -29,6 +29,7 @@ export interface Ticket {
   holder_name: string;
   status: "valid" | "cancelled";
   checked_in_at: string | null;
+  checked_in_by_label: string | null;
   created_at: string;
 }
 

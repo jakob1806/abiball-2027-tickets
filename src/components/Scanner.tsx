@@ -10,6 +10,7 @@ interface Result {
   ticket_type_name: string | null;
   ticket_type_id?: string | null;
   ticket_number?: string | null;
+  checked_in_by_label?: string | null;
   checked_in_at: string | null;
 }
 
@@ -39,7 +40,15 @@ function feedback(ok: boolean) {
   }
 }
 
-export default function Scanner() {
+export default function Scanner({
+  checkinUrl = "/api/admin/checkin",
+  statsUrl = "/api/admin/checkin",
+  onUnauthorized = () => window.location.assign("/admin/login?weiter=/admin/scanner"),
+}: {
+  checkinUrl?: string;
+  statsUrl?: string;
+  onUnauthorized?: () => void;
+} = {}) {
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const lastRef = useRef<{ code: string; at: number }>({ code: "", at: 0 });
   const busyRef = useRef(false);
@@ -48,16 +57,16 @@ export default function Scanner() {
   const [result, setResult] = useState<Result | null>(null);
   const [manual, setManual] = useState("");
   const [history, setHistory] = useState<Result[]>([]);
-  const [counter, setCounter] = useState<{ inside: number; total: number } | null>(null);
+  const [counter, setCounter] = useState<{ inside: number; total?: number; sold?: number; capacity?: number } | null>(null);
 
   const refreshCounter = useCallback(async () => {
     try {
-      const res = await fetch("/api/admin/checkin", { cache: "no-store" });
+      const res = await fetch(statsUrl, { cache: "no-store" });
       if (res.ok) setCounter(await res.json());
     } catch {
       /* offline */
     }
-  }, []);
+  }, [statsUrl]);
 
   useEffect(() => {
     void refreshCounter();
@@ -72,13 +81,13 @@ export default function Scanner() {
     lastRef.current = { code, at: now };
     busyRef.current = true;
     try {
-      const res = await fetch("/api/admin/checkin", {
+      const res = await fetch(checkinUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code }),
       });
       if (res.status === 401) {
-        window.location.assign("/admin/login?weiter=/admin/scanner");
+        onUnauthorized();
         return;
       }
       const data = (await res.json()) as Result;
@@ -92,7 +101,7 @@ export default function Scanner() {
     } finally {
       busyRef.current = false;
     }
-  }, [refreshCounter]);
+  }, [refreshCounter, checkinUrl, onUnauthorized]);
 
   async function start() {
     setCamError(null);
@@ -128,8 +137,11 @@ export default function Scanner() {
     <div className="form">
       {counter && (
         <div className="meter-row" style={{ margin: 0 }}>
-          <div className="meter-label"><strong>{counter.inside} drin</strong><span className="muted">von {counter.total} Tickets</span></div>
-          <div className="meter"><span style={{ width: `${counter.total ? Math.round((counter.inside / counter.total) * 100) : 0}%` }} /></div>
+          <div className="meter-label">
+            <strong>{counter.inside} drin</strong>
+            <span className="muted">von {counter.total ?? counter.sold} Tickets{counter.capacity ? ` · Kapazität ${counter.capacity}` : ""}</span>
+          </div>
+          <div className="meter"><span style={{ width: `${(counter.total ?? counter.sold) ? Math.round((counter.inside / (counter.total ?? counter.sold ?? 1)) * 100) : 0}%` }} /></div>
         </div>
       )}
       <div id="reader" style={{ minHeight: running ? 0 : 0 }} />
@@ -154,7 +166,9 @@ export default function Scanner() {
           {result.result === "ok" && result.ticket_type_id && result.ticket_type_id !== "ball" && (
             <div style={{ marginTop: 6, fontWeight: 600 }}>Nur Afterparty – Einlass ab 22:30 Uhr</div>
           )}
-          {result.result === "duplicate" && <div>Erster Einlass um {time(result.checked_in_at)} Uhr</div>}
+          {result.result === "duplicate" && (
+            <div>Erster Einlass um {time(result.checked_in_at)} Uhr{result.checked_in_by_label ? ` durch ${result.checked_in_by_label}` : ""}</div>
+          )}
           <div className="mono small" style={{ marginTop: 8, opacity: 0.85 }}>{result.code}</div>
         </div>
       )}

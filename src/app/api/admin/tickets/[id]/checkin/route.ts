@@ -18,8 +18,11 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   if (t.status !== "valid" || orderStatus !== "paid") return NextResponse.json({ error: "Ticket ist nicht gültig" }, { status: 409 });
 
   const checkedInAt = checked ? t.checked_in_at ?? new Date().toISOString() : null;
-  const { error } = await db().from("tickets").update({ checked_in_at: checkedInAt }).eq("id", t.id);
+  const { error } = await db()
+    .from("tickets")
+    .update({ checked_in_at: checkedInAt, checked_in_by: null, checked_in_by_label: checked ? "Admin (Liste)" : null })
+    .eq("id", t.id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  if (checked && !t.checked_in_at) await db().from("checkins").insert({ ticket_id: t.id, code: t.code, result: "ok" });
+  if (checked && !t.checked_in_at) await db().from("checkins").insert({ ticket_id: t.id, code: t.code, result: "ok", scanner_label: "Admin (Liste)" });
   return NextResponse.json({ checked_in_at: checkedInAt });
 }

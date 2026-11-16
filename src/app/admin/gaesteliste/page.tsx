@@ -10,13 +10,16 @@ export const dynamic = "force-dynamic";
 
 type View = "tickets" | "abiturienten";
 
-export default async function GuestList({ searchParams }: { searchParams: { ansicht?: string; type?: string; q?: string } }) {
+export default async function GuestList({ searchParams }: { searchParams: { ansicht?: string; type?: string; q?: string; status?: string } }) {
   const view: View = searchParams.ansicht === "abiturienten" ? "abiturienten" : "tickets";
   const [all, types] = await Promise.all([getGuestList(), ticketTypeMap()]);
   const q = (searchParams.q ?? "").trim().toLowerCase();
+  const statusFilter = searchParams.status ?? "";
   const rows = all.filter(
     (r) =>
       (!searchParams.type || r.ticket_type_id === searchParams.type) &&
+      (statusFilter !== "drin" || !!r.checked_in_at) &&
+      (statusFilter !== "fehlt" || !r.checked_in_at) &&
       (!q || r.holder_name.toLowerCase().includes(q) || (r.ticket_number ?? "").toLowerCase().includes(q) || r.orders.buyer_name.toLowerCase().includes(q) || (r.orders.guest_of ?? "").toLowerCase().includes(q)),
   );
 
@@ -51,7 +54,24 @@ export default async function GuestList({ searchParams }: { searchParams: { ansi
         </div>
       </div>
 
-      <form className="filters no-print" method="get" style={{ gridTemplateColumns: "1fr 200px auto", marginTop: 24 }}>
+      <div className="row no-print" style={{ marginTop: 20, gap: 8 }}>
+        {[
+          ["", `Alle (${all.length})`],
+          ["drin", `Eingecheckt (${all.filter((r) => r.checked_in_at).length})`],
+          ["fehlt", `Noch nicht da (${all.filter((r) => !r.checked_in_at).length})`],
+        ].map(([v, label]) => (
+          <Link
+            key={v}
+            className={`btn small ${statusFilter === v ? "" : "ghost"}`}
+            href={`/admin/gaesteliste?ansicht=${view}${v ? `&status=${v}` : ""}${searchParams.type ? `&type=${searchParams.type}` : ""}`}
+          >
+            {label}
+          </Link>
+        ))}
+      </div>
+
+      <form className="filters no-print" method="get" style={{ gridTemplateColumns: "1fr 200px auto", marginTop: 16 }}>
+        {statusFilter && <input type="hidden" name="status" value={statusFilter} />}
         <input type="hidden" name="ansicht" value={view} />
         <input type="search" name="q" placeholder="Name suchen" defaultValue={searchParams.q ?? ""} />
         <select name="type" defaultValue={searchParams.type ?? ""}>
@@ -64,7 +84,7 @@ export default async function GuestList({ searchParams }: { searchParams: { ansi
       {view === "tickets" ? (
         <div className="table-wrap" style={{ marginTop: 16 }}>
           <table>
-            <thead><tr><th style={{ width: 36 }}>✓</th><th>Nr.</th><th>Name</th><th>Ticket</th><th>Bestellt von</th><th>Eingecheckt</th></tr></thead>
+            <thead><tr><th style={{ width: 36 }}>✓</th><th>Nr.</th><th>Name</th><th>Ticket</th><th>Bestellt von</th><th>Eingecheckt</th><th>Eingelassen von</th></tr></thead>
             <tbody>
               {rows.map((r) => (
                 <tr key={r.id}>
@@ -77,9 +97,10 @@ export default async function GuestList({ searchParams }: { searchParams: { ansi
                     <div className="small muted">{r.orders.relation === "abiturient" ? "Abiturient/in" : `Gast von ${r.orders.guest_of ?? "–"}`}</div>
                   </td>
                   <td className="small">{r.checked_in_at ? dateTime(r.checked_in_at) : "–"}</td>
+                  <td className="small">{r.checked_in_by_label ?? (r.checked_in_at ? "–" : "")}</td>
                 </tr>
               ))}
-              {rows.length === 0 && <tr><td colSpan={6} className="muted">Keine Tickets.</td></tr>}
+              {rows.length === 0 && <tr><td colSpan={7} className="muted">Keine Tickets.</td></tr>}
             </tbody>
           </table>
         </div>
