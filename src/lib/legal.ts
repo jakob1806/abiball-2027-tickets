@@ -13,7 +13,7 @@ export const LEGAL = {
   street: "Gabelsbergerstraße 6",
   city: "80333 München",
   email: "jakob.liess@outlook.de",
-  phone: "", // optional – leer lassen, wenn keine Telefonnummer veröffentlicht werden soll
+  phone: "+49 157 37260486",
   // Verantwortlich für redaktionelle Inhalte (§ 18 Abs. 2 MStV)
   contentResponsible: "Jakob Liess, Gabelsbergerstraße 6, 80333 München",
   // Umsatzsteuer: Kleinunternehmerregelung (§ 19 UStG) üblich – mit Steuerberatung/Finanzamt klären
