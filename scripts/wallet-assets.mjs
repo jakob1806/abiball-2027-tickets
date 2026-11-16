@@ -31,9 +31,15 @@ const assets = {
   "icon@3x.png": render(87, 87, { pad: 6, bg: "#ffffff" }),
 };
 
+// Wappen in Druckauflösung für das PDF-Ticket (transparent)
+const printCrest = render(640, 388);
+
 const out = `// Automatisch erzeugt von scripts/wallet-assets.mjs – nicht von Hand bearbeiten.
 // Quelle: Großes Bayerisches Staatswappen (Wikimedia Commons, gemeinfrei nach § 5 UrhG)
 export const WALLET_ASSETS_BASE64: Record<string, string> = ${JSON.stringify(assets, null, 2)};
+
+/** Wappen 640×388 px, transparent – für das PDF-Ticket. */
+export const CREST_PRINT_PNG_BASE64 = ${JSON.stringify(printCrest)};
 `;
 writeFileSync(new URL("../src/lib/wallet-assets.ts", import.meta.url), out);
 for (const [k, v] of Object.entries(assets)) console.log(k, Math.round((v.length * 3) / 4 / 1024), "KB");
