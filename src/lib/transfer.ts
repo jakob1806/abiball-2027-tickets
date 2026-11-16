@@ -6,6 +6,7 @@ import { EVENT } from "./event";
 import { optionalEnv, requireEnv, siteUrl } from "./env";
 import { dateTime, euro } from "./format";
 import { deliverOrQueue } from "./mail";
+import { button, esc, heading, infoTable, layout, noteBox, paragraph } from "./mail-layout";
 import type { Order } from "./types";
 
 export interface BankDetails {
@@ -91,61 +92,83 @@ export function epcPayload(bank: BankDetails, amountCents: number, reference: st
   ].join("\n");
 }
 
-async function sendMail(to: string, subject: string, paragraphs: string[], button?: { href: string; label: string }) {
-  const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
-  const html = `<!doctype html><html lang="de"><body style="margin:0;background:#fff;color:#000;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
-<div style="max-width:560px;margin:0 auto;padding:40px 24px">
-  <p style="font-size:14px;color:#6b6b6b;margin:0 0 8px">${esc(EVENT.school)}</p>
-  <h1 style="font-size:36px;line-height:1.05;margin:0 0 24px;letter-spacing:-0.02em">${esc(EVENT.title)}</h1>
-  ${paragraphs.map((p) => `<p style="font-size:16px;line-height:1.55">${p}</p>`).join("\n")}
-  ${button ? `<p style="margin:28px 0"><a href="${esc(button.href)}" style="display:inline-block;background:#000;color:#fff;text-decoration:none;padding:14px 22px;border-radius:999px;font-weight:600">${esc(button.label)}</a></p>` : ""}
-  <hr style="border:0;border-top:1px solid #e5e5e5;margin:32px 0">
-  <p style="font-size:12px;color:#6b6b6b">Veranstalter: ${esc(EVENT.organizer)}. Keine Schulveranstaltung.</p>
-</div></body></html>`;
-  const text = paragraphs.map((p) => p.replace(/<br\s*\/?>/g, "\n").replace(/<[^>]+>/g, "")).join("\n\n") + (button ? `\n\n${button.label}: ${button.href}` : "");
+async function sendMail(to: string, subject: string, preheader: string, body: string, text: string) {
   const resend = new Resend(requireEnv("RESEND_API_KEY"));
-  const { error } = await resend.emails.send({ from: requireEnv("MAIL_FROM"), to, replyTo: optionalEnv("MAIL_REPLY_TO"), subject, html, text });
+  const { error } = await resend.emails.send({
+    from: requireEnv("MAIL_FROM"),
+    to,
+    replyTo: optionalEnv("MAIL_REPLY_TO"),
+    subject,
+    html: layout({ preheader, body }),
+    text,
+  });
   if (error) throw new Error(`Resend: ${error.message}`);
 }
 
-function bankBlock(bank: BankDetails, order: Order): string {
+function bankRows(bank: BankDetails, order: Order): [string, string][] {
+  const rows: [string, string][] = [
+    ["Empfänger", esc(bank.holder)],
+    ["IBAN", `<span style="font-family:Menlo,Consolas,monospace">${esc(formatIban(bank.iban))}</span>`],
+  ];
+  if (bank.bic) rows.push(["BIC", `<span style="font-family:Menlo,Consolas,monospace">${esc(bank.bic)}</span>`]);
+  rows.push(["Betrag", `<strong>${esc(euro(order.amount_cents))}</strong>`]);
+  rows.push(["Verwendungszweck", `<strong style="font-family:Menlo,Consolas,monospace">${esc(order.transfer_reference ?? "")}</strong>`]);
+  rows.push(["Zahlungsfrist", `${esc(dateTime(order.transfer_due_at))} Uhr`]);
+  return rows;
+}
+
+function bankText(bank: BankDetails, order: Order): string {
   return [
-    `<strong>Empfänger:</strong> ${bank.holder}`,
-    `<strong>IBAN:</strong> ${formatIban(bank.iban)}`,
-    bank.bic ? `<strong>BIC:</strong> ${bank.bic}` : "",
-    `<strong>Betrag:</strong> ${euro(order.amount_cents)}`,
-    `<strong>Verwendungszweck:</strong> ${order.transfer_reference}`,
-  ]
-    .filter(Boolean)
-    .join("<br>");
+    `Empfänger: ${bank.holder}`,
+    `IBAN: ${formatIban(bank.iban)}`,
+    bank.bic ? `BIC: ${bank.bic}` : "",
+    `Betrag: ${euro(order.amount_cents)}`,
+    `Verwendungszweck: ${order.transfer_reference}`,
+    `Zahlungsfrist: ${dateTime(order.transfer_due_at)} Uhr`,
+  ].filter(Boolean).join("\n");
 }
 
 export async function sendTransferInstructions(order: Order, bank: BankDetails) {
   const url = `${siteUrl()}/bestellung/${order.public_token}`;
-  await sendMail(order.email, `Bitte überweisen: ${EVENT.title}`, [
-    `Hallo ${order.buyer_name},`,
-    `danke für deine Bestellung. Deine Plätze sind bis <strong>${dateTime(order.transfer_due_at)} Uhr</strong> reserviert. Bitte überweise bis dahin:`,
-    bankBlock(bank, order),
-    `Wichtig: Gib genau diesen Verwendungszweck an, damit wir deine Zahlung zuordnen können. Sobald das Geld da ist, schicken wir dir deine Tickets per E-Mail. Geht bis zur Frist keine Zahlung ein, wird die Bestellung automatisch storniert.`,
-  ], { href: url, label: "Bestellung und GiroCode ansehen" });
+  const first = order.buyer_name.split(" ")[0];
+  const body = [
+    heading("Fast geschafft.", 1),
+    paragraph(`Hallo ${esc(first)},<br>danke für deine Bestellung! Deine Plätze sind reserviert. Bitte überweise den Betrag bis <strong>${esc(dateTime(order.transfer_due_at))} Uhr</strong> – danach schicken wir dir deine Tickets.`),
+    heading("Überweisung"),
+    infoTable(bankRows(bank, order)),
+    noteBox("<strong>Wichtig:</strong> Gib genau diesen Verwendungszweck an, damit wir deine Zahlung zuordnen können. Am einfachsten geht es mit dem <strong>GiroCode</strong> auf deiner Bestellseite – einfach mit der Banking-App scannen."),
+    `<div style="margin:4px 0 22px">${button(url, "Bestellung & GiroCode ansehen")}</div>`,
+    paragraph("Geht bis zur Frist keine Zahlung ein, wird die Bestellung automatisch storniert und die Plätze werden wieder freigegeben.", { small: true, muted: true }),
+  ].join("\n");
+  const text = `Hallo ${first},\n\ndanke für deine Bestellung! Bitte überweise bis ${dateTime(order.transfer_due_at)} Uhr:\n\n${bankText(bank, order)}\n\nBestellung & GiroCode: ${url}\n\nOhne Zahlungseingang wird die Bestellung nach Ablauf der Frist automatisch storniert.`;
+  await sendMail(order.email, `Bitte überweisen: ${EVENT.title} (${order.transfer_reference})`, `Bitte bis ${dateTime(order.transfer_due_at)} überweisen – Verwendungszweck ${order.transfer_reference}`, body, text);
 }
 
 export async function sendTransferReminder(order: Order, bank: BankDetails) {
   const url = `${siteUrl()}/bestellung/${order.public_token}`;
-  await sendMail(order.email, `Erinnerung: Zahlung für den ${EVENT.title}`, [
-    `Hallo ${order.buyer_name},`,
-    `für deine Bestellung ist noch keine Zahlung eingegangen. Deine Plätze sind nur noch bis <strong>${dateTime(order.transfer_due_at)} Uhr</strong> reserviert.`,
-    bankBlock(bank, order),
-    `Falls du schon überwiesen hast, ist alles gut – Überweisungen brauchen manchmal 1–2 Werktage.`,
-  ], { href: url, label: "Bestellung ansehen" });
+  const first = order.buyer_name.split(" ")[0];
+  const body = [
+    heading("Kleine Erinnerung", 1),
+    paragraph(`Hallo ${esc(first)},<br>für deine Bestellung ist noch keine Zahlung eingegangen. Deine Plätze sind nur noch bis <strong>${esc(dateTime(order.transfer_due_at))} Uhr</strong> reserviert.`),
+    heading("Überweisung"),
+    infoTable(bankRows(bank, order)),
+    `<div style="margin:4px 0 22px">${button(url, "Bestellung & GiroCode ansehen")}</div>`,
+    paragraph("Schon überwiesen? Dann ist alles gut – Überweisungen brauchen manchmal 1–2 Werktage.", { small: true, muted: true }),
+  ].join("\n");
+  const text = `Hallo ${first},\n\nfür deine Bestellung ist noch keine Zahlung eingegangen. Deine Plätze sind nur noch bis ${dateTime(order.transfer_due_at)} Uhr reserviert.\n\n${bankText(bank, order)}\n\n${url}`;
+  await sendMail(order.email, `Erinnerung: Zahlung für den ${EVENT.title}`, `Deine Plätze sind nur noch bis ${dateTime(order.transfer_due_at)} reserviert`, body, text);
 }
 
 export async function sendTransferCancelled(order: Order) {
-  await sendMail(order.email, `Bestellung storniert: ${EVENT.title}`, [
-    `Hallo ${order.buyer_name},`,
-    `für deine Bestellung (Verwendungszweck ${order.transfer_reference}) ist bis zur Frist keine Zahlung eingegangen. Die Bestellung wurde deshalb storniert und die Plätze wieder freigegeben.`,
-    `Falls du inzwischen doch überwiesen hast, melde dich bitte bei uns – wir klären das. Solange noch Plätze frei sind, kannst du jederzeit neu bestellen.`,
-  ], { href: siteUrl(), label: "Neu bestellen" });
+  const first = order.buyer_name.split(" ")[0];
+  const body = [
+    heading("Bestellung storniert", 1),
+    paragraph(`Hallo ${esc(first)},<br>für deine Bestellung (Verwendungszweck <strong>${esc(order.transfer_reference ?? "")}</strong>) ist bis zur Frist keine Zahlung eingegangen. Wir haben die Bestellung deshalb storniert und die Plätze wieder freigegeben.`),
+    paragraph("Du hast inzwischen doch überwiesen? Dann antworte einfach auf diese Mail – wir klären das.", { small: true }),
+    `<div style="margin:4px 0 22px">${button(siteUrl(), "Neu bestellen", "ghost")}</div>`,
+  ].join("\n");
+  const text = `Hallo ${first},\n\nfür deine Bestellung (${order.transfer_reference}) ist bis zur Frist keine Zahlung eingegangen. Die Bestellung wurde storniert.\n\nDoch überwiesen? Antworte einfach auf diese Mail.\n\nNeu bestellen: ${siteUrl()}`;
+  await sendMail(order.email, `Bestellung storniert: ${EVENT.title}`, "Ohne Zahlungseingang storniert – Plätze wieder freigegeben", body, text);
 }
 
 /** Zahlungseingang bestätigen: Tickets erzeugen und Ticketmail senden (bzw. in die Warteschlange). */

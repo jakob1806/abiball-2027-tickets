@@ -27,6 +27,7 @@ export default async function AdminOrder({ params }: { params: { id: string } })
           status={order.status}
           canRefund={order.payment_method === "stripe" && !!order.stripe_payment_intent}
           openTransfer={order.payment_method === "ueberweisung" && !!order.transfer_reference && ["pending", "expired"].includes(order.status)}
+          canDelete={!order.paid_at && ["expired", "cancelled"].includes(order.status)}
         />
       </div>
       <div style={{ marginTop: 12 }}>

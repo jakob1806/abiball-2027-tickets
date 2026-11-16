@@ -1,6 +1,8 @@
 import "server-only";
 import { Resend } from "resend";
-import { EVENT, VENUE_ONE_LINE } from "./event";
+import { EVENT } from "./event";
+import { button, esc, heading, infoTable, layout, mapsUrl, noteBox, paragraph, ticketList } from "./mail-layout";
+import type { OrderWithDetails, Ticket, TicketType } from "./types";
 import { optionalEnv, requireEnv, siteUrl } from "./env";
 import { euro } from "./format";
 import { buildIcs } from "./ics";
@@ -10,9 +12,6 @@ import { buildPkpass, isAppleWalletConfigured } from "./pkpass";
 import { googleWalletUrl } from "./gwallet";
 import { db } from "./supabase";
 
-function esc(s: string): string {
-  return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
-}
 
 /** Versendet die Ticketmail mit PDF, .pkpass-Dateien und .ics. Setzt mail_sent_at. */
 export async function sendTicketMail(orderId: string): Promise<void> {
@@ -57,46 +56,21 @@ export async function sendTicketMail(orderId: string): Promise<void> {
     console.error("Google Wallet fehlgeschlagen", err);
   }
 
-  const counts = order.order_items
-    .map((i) => `${i.quantity} × ${types[i.ticket_type_id]?.name ?? i.ticket_type_id}`)
-    .join(", ");
-
-  const button = (href: string, label: string) =>
-    `<a href="${esc(href)}" style="display:inline-block;background:#000;color:#fff;text-decoration:none;padding:14px 22px;border-radius:999px;font-weight:600;margin:0 8px 8px 0">${esc(label)}</a>`;
-
-  const html = `<!doctype html><html lang="de"><body style="margin:0;background:#fff;color:#000;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
-<div style="max-width:560px;margin:0 auto;padding:40px 24px">
-  <p style="font-size:14px;color:#6b6b6b;margin:0 0 8px">${esc(EVENT.school)}</p>
-  <h1 style="font-size:40px;line-height:1.05;margin:0 0 24px;letter-spacing:-0.02em">${esc(EVENT.title)}</h1>
-  <p style="font-size:17px;line-height:1.5">Hallo ${esc(order.buyer_name)},<br>danke für deine Bestellung. Deine Tickets sind im Anhang (PDF${isAppleWalletConfigured() ? " und Apple Wallet" : ""}).</p>
-  <p style="font-size:17px;line-height:1.5"><strong>${esc(counts)}</strong> · ${esc(euro(order.amount_cents))}</p>
-  <p style="font-size:17px;line-height:1.5">${esc(EVENT.dateLabel)}, ${esc(EVENT.timeLabel)}<br>${esc(VENUE_ONE_LINE)}</p>
-  <div style="margin:28px 0">${button(orderUrl, "Tickets online ansehen")}${gUrl ? button(gUrl, "Zu Google Wallet hinzufügen") : ""}</div>
-  <p style="font-size:14px;line-height:1.5;color:#6b6b6b">Jeder QR-Code gilt für genau einen Einlass. Bitte leite die Tickets nur an die jeweiligen Gäste weiter. Personen unter 18 Jahren dürfen ohne erziehungsbeauftragte Person nur bis 24 Uhr bleiben.</p>
-  <hr style="border:0;border-top:1px solid #e5e5e5;margin:32px 0">
-  <p style="font-size:12px;line-height:1.5;color:#6b6b6b">Veranstalter: ${esc(EVENT.organizer)}. Keine Schulveranstaltung.<br><a href="${siteUrl()}/impressum" style="color:#6b6b6b">Impressum</a> · <a href="${siteUrl()}/datenschutz" style="color:#6b6b6b">Datenschutz</a> · <a href="${siteUrl()}/agb" style="color:#6b6b6b">AGB</a></p>
-</div></body></html>`;
-
-  const text = [
-    `Hallo ${order.buyer_name},`,
-    "",
-    "danke für deine Bestellung. Deine Tickets sind im Anhang.",
-    `${counts} · ${euro(order.amount_cents)}`,
-    `${EVENT.dateLabel}, ${EVENT.timeLabel}`,
-    VENUE_ONE_LINE,
-    "",
-    `Tickets online: ${orderUrl}`,
-    gUrl ? `Google Wallet: ${gUrl}` : "",
-    "",
-    `Veranstalter: ${EVENT.organizer}. Keine Schulveranstaltung.`,
-  ].join("\n");
+  const { html, text, subject } = buildTicketMail({
+    order,
+    tickets,
+    types,
+    orderUrl,
+    googleWalletUrl: gUrl,
+    appleAttached: attachments.some((x) => x.filename.endsWith(".pkpass")),
+  });
 
   const resend = new Resend(requireEnv("RESEND_API_KEY"));
   const payload = {
     from: requireEnv("MAIL_FROM"),
     to: order.email,
     replyTo: optionalEnv("MAIL_REPLY_TO"),
-    subject: `Deine Tickets: ${EVENT.title}`,
+    subject,
     html,
     text,
     attachments,
@@ -181,4 +155,103 @@ export async function processMailQueue(max = 50): Promise<{ sent: number; remain
     .is("mail_sent_at", null)
     .not("mail_queued_at", "is", null);
   return { sent, remaining: count ?? 0, stoppedByQuota };
+}
+
+/** Inhalt der Buchungsbestätigung (auch für die Vorschau nutzbar). */
+export function buildTicketMail({
+  order,
+  tickets,
+  types,
+  orderUrl,
+  googleWalletUrl,
+  appleAttached,
+}: {
+  order: OrderWithDetails;
+  tickets: Ticket[];
+  types: Record<string, TicketType>;
+  orderUrl: string;
+  googleWalletUrl: string | null;
+  appleAttached: boolean;
+}): { html: string; text: string; subject: string } {
+  const sorted = [...tickets].sort(
+    (a, b) =>
+      Number(b.ticket_type_id === "ball") - Number(a.ticket_type_id === "ball") ||
+      (a.ticket_number ?? "").localeCompare(b.ticket_number ?? "", "de", { numeric: true }),
+  );
+  const numbers = sorted.map((t) => t.ticket_number).filter(Boolean).join(", ");
+  const onlyAfter = sorted.every((t) => t.ticket_type_id !== "ball");
+  const firstName = order.buyer_name.split(" ")[0];
+  const payLabel: Record<string, string> = { stripe: "Karte / Apple Pay / Google Pay", ueberweisung: "Überweisung", bar: "Bar", frei: "Freiticket" };
+
+  const attachmentsNote = [
+    "<strong>Im Anhang:</strong> deine Tickets als PDF",
+    appleAttached ? ", je Ticket eine Apple-Wallet-Datei (auf dem iPhone antippen → „Hinzufügen“)" : "",
+    " und eine Kalenderdatei.",
+  ].join("");
+
+  const body = [
+    heading("Du bist dabei.", 1),
+    paragraph(`Hallo ${esc(firstName)},<br>danke für deine Bestellung – wir freuen uns auf dich! Hier sind deine Tickets für den ${esc(EVENT.title)}.`),
+    heading(sorted.length === 1 ? "Dein Ticket" : `Deine ${sorted.length} Tickets`),
+    ticketList(
+      sorted.map((t) => ({
+        number: t.ticket_number ?? t.code,
+        typeId: t.ticket_type_id,
+        typeName: types[t.ticket_type_id]?.name ?? t.ticket_type_id,
+        holder: t.holder_name,
+        admission: t.ticket_type_id === "ball" ? "Einlass ab 19:00 Uhr" : "Einlass ab 22:30 Uhr",
+      })),
+    ),
+    `<div style="margin:8px 0 22px">${button(orderUrl, "Tickets & QR-Codes ansehen")}${googleWalletUrl ? button(googleWalletUrl, "Zu Google Wallet", "ghost") : ""}</div>`,
+    noteBox(attachmentsNote),
+    heading("Der Abend"),
+    infoTable([
+      ["Datum", esc(EVENT.dateLabel)],
+      ["Uhrzeit", onlyAfter ? "22:30 bis 04:00 Uhr" : `${esc(EVENT.timeLabel)}<br><span style="color:#6b6b6b;font-size:13px">Afterparty ab 22:30 Uhr</span>`],
+      ["Ort", `${esc(EVENT.venueName)}<br>${esc(EVENT.venueStreet)}<br>${esc(EVENT.venueCity)}<br><a href="${mapsUrl()}" style="color:#000000;font-size:13px">In Karten öffnen →</a>`],
+    ]),
+    heading("Deine Bestellung"),
+    infoTable([
+      ["Besteller/in", esc(order.buyer_name)],
+      ["Tickets", sorted.length === 1 ? esc(numbers) : `${sorted.length} · ${esc(numbers)}`],
+      ["Betrag", esc(euro(order.amount_cents))],
+      ["Zahlung", esc(payLabel[order.payment_method] ?? order.payment_method)],
+    ]),
+    heading("Gut zu wissen"),
+    paragraph(
+      [
+        "• Jeder QR-Code gilt für <strong>genau einen Einlass</strong> – bitte leite Tickets nur an die jeweiligen Gäste weiter.",
+        "• Bring einen <strong>Lichtbildausweis</strong> mit.",
+        "• Unter 16 Jahren nur mit Begleitung, unter 18 Jahren ohne erziehungsbeauftragte Person nur bis 24 Uhr.",
+      ].join("<br>"),
+      { small: true },
+    ),
+    paragraph("Fragen? Antworte einfach auf diese Mail.", { small: true, muted: true }),
+  ].join("\n");
+
+  const text = [
+    `Hallo ${firstName},`,
+    "",
+    `danke für deine Bestellung! Deine Tickets für den ${EVENT.title}:`,
+    ...sorted.map((t) => `- ${t.ticket_number ?? ""} ${types[t.ticket_type_id]?.name ?? t.ticket_type_id}: ${t.holder_name}`),
+    "",
+    `${EVENT.dateLabel}, ${EVENT.timeLabel}`,
+    `${EVENT.venueName}, ${EVENT.venueStreet}, ${EVENT.venueCity}`,
+    "",
+    `Tickets & QR-Codes: ${orderUrl}`,
+    googleWalletUrl ? `Google Wallet: ${googleWalletUrl}` : "",
+    "",
+    "Im Anhang: Tickets als PDF" + (appleAttached ? ", Apple-Wallet-Dateien" : "") + " und Kalenderdatei.",
+    "Jeder QR-Code gilt für genau einen Einlass. Bitte Ausweis mitbringen.",
+    "",
+    `Veranstalter: ${EVENT.organizer}. Keine Schulveranstaltung.`,
+  ]
+    .filter((l) => l !== "")
+    .join("\n");
+
+  return {
+    html: layout({ preheader: `Deine Tickets ${numbers} – ${EVENT.dateLabel}, ${EVENT.venueName}`, body }),
+    text,
+    subject: `Deine Tickets für den ${EVENT.title} (${numbers})`,
+  };
 }

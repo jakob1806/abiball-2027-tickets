@@ -8,11 +8,13 @@ export default function AdminOrderActions({
   status,
   canRefund,
   openTransfer = false,
+  canDelete = false,
 }: {
   orderId: string;
   status: string;
   canRefund: boolean;
   openTransfer?: boolean;
+  canDelete?: boolean;
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
@@ -30,6 +32,18 @@ export default function AdminOrderActions({
   }
 
   const active = status === "paid" || status === "pending";
+
+  async function remove() {
+    if (!window.confirm("Diese Buchung endgültig löschen? Das lässt sich nicht rückgängig machen.")) return;
+    setBusy("delete");
+    const res = await fetch(`/api/admin/orders/${orderId}`, { method: "DELETE" });
+    const data = await res.json().catch(() => ({}));
+    setBusy(null);
+    if (res.ok) {
+      router.push("/admin/buchungen");
+      router.refresh();
+    } else setMsg({ ok: false, text: data.error ?? "Fehler" });
+  }
   return (
     <div className="form" style={{ gap: 12 }}>
       <div className="row">
@@ -70,6 +84,11 @@ export default function AdminOrderActions({
             onClick={() => run("cancel", "Bestellung stornieren? Alle Tickets werden ungültig. Es wird NICHT automatisch erstattet.")}
           >
             {busy === "cancel" ? "Storniere …" : "Stornieren (ohne Erstattung)"}
+          </button>
+        )}
+        {canDelete && (
+          <button className="btn small danger" disabled={!!busy} onClick={remove}>
+            {busy === "delete" ? "Lösche …" : "Buchung löschen"}
           </button>
         )}
       </div>

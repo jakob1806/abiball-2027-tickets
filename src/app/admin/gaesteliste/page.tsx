@@ -1,6 +1,7 @@
 import Link from "next/link";
 import PrintButton from "@/components/PrintButton";
 import TypeBadge from "@/components/TypeBadge";
+import GuestCheckbox from "@/components/GuestCheckbox";
 import { getGuestList } from "@/lib/admin-data";
 import { ticketTypeMap } from "@/lib/orders";
 import { dateTime } from "@/lib/format";
@@ -67,7 +68,7 @@ export default async function GuestList({ searchParams }: { searchParams: { ansi
             <tbody>
               {rows.map((r) => (
                 <tr key={r.id}>
-                  <td><span className="checkbox-box">{r.checked_in_at ? "✓" : ""}</span></td>
+                  <td><GuestCheckbox ticketId={r.id} initial={r.checked_in_at} name={r.holder_name} /></td>
                   <td className="ticket-no">{r.ticket_number ?? "–"}</td>
                   <td><strong>{r.holder_name}</strong></td>
                   <td><TypeBadge typeId={r.ticket_type_id} name={types[r.ticket_type_id]?.name} /></td>
@@ -97,7 +98,7 @@ export default async function GuestList({ searchParams }: { searchParams: { ansi
                       <td className="ticket-no small">{r.ticket_number}</td>
                       <td>{r.holder_name}</td>
                       <td className="small"><TypeBadge typeId={r.ticket_type_id} name={types[r.ticket_type_id]?.name} /></td>
-                      <td className="small">{r.checked_in_at ? <span className="badge ok">drin</span> : ""}</td>
+                      <td className="small" style={{ width: 36 }}><GuestCheckbox ticketId={r.id} initial={r.checked_in_at} name={r.holder_name} /></td>
                     </tr>
                   ))}
                 </tbody>

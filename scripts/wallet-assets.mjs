@@ -42,4 +42,7 @@ export const WALLET_ASSETS_BASE64: Record<string, string> = ${JSON.stringify(ass
 export const CREST_PRINT_PNG_BASE64 = ${JSON.stringify(printCrest)};
 `;
 writeFileSync(new URL("../src/lib/wallet-assets.ts", import.meta.url), out);
+
+// Wappen für E-Mails (PNG, da viele Mailprogramme kein SVG anzeigen), 2× Auflösung für 120 px Breite
+writeFileSync(new URL("../public/images/mail-crest.png", import.meta.url), Buffer.from(render(240, 146), "base64"));
 for (const [k, v] of Object.entries(assets)) console.log(k, Math.round((v.length * 3) / 4 / 1024), "KB");

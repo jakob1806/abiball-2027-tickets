@@ -247,7 +247,10 @@ td a { text-decoration: none; font-weight: 600; }
   th, td { padding: 4px 6px; }
   .table-wrap { border: 0; }
 }
-.checkbox-box { display: inline-flex; width: 18px; height: 18px; border: 1.5px solid #000; border-radius: 4px; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; }
+.checkbox-box { display: inline-flex; width: 26px; height: 26px; border: 1.5px solid #000; border-radius: 6px; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; background: #fff; color: #fff; cursor: pointer; padding: 0; font-family: inherit; }
+.checkbox-box.is-checked { background: #000; }
+.checkbox-box:disabled { opacity: 0.6; cursor: progress; }
+@media print { .checkbox-box { width: 16px; height: 16px; border-width: 1px; } .checkbox-box.is-checked { background: #fff; color: #000; } }
 .admin-nav a.active { color: var(--fg); font-weight: 600; }
 @media (max-width: 960px) {
   .admin-top .wrap { height: auto; flex-direction: column; align-items: stretch; padding-top: 12px; }

@@ -43,3 +43,17 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   }
   return NextResponse.json({ message: "Gespeichert. Bei geänderter E-Mail oder Namen ggf. „Mail erneut senden“." });
 }
+
+/** Abgelaufene oder unbezahlt stornierte Buchung endgültig löschen. */
+export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
+  const denied = await requireAdminApi();
+  if (denied) return denied;
+  const { data: o } = await db().from("orders").select("id, status, paid_at").eq("id", params.id).maybeSingle();
+  if (!o) return NextResponse.json({ error: "Bestellung nicht gefunden" }, { status: 404 });
+  if (o.paid_at || !["expired", "cancelled"].includes(o.status)) {
+    return NextResponse.json({ error: "Nur abgelaufene oder unbezahlte stornierte Buchungen können gelöscht werden." }, { status: 409 });
+  }
+  const { error } = await db().from("orders").delete().eq("id", o.id);
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ message: "Buchung gelöscht." });
+}

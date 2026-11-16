@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { listOrders } from "@/lib/admin-data";
+import DeleteExpiredButton from "@/components/DeleteExpiredButton";
+import { db } from "@/lib/supabase";
 import { ticketTypeMap } from "@/lib/orders";
 import { dateTime, euro, PAYMENT_LABEL, relationLabel, STATUS_LABEL } from "@/lib/format";
 
@@ -8,7 +10,11 @@ export const dynamic = "force-dynamic";
 const badgeClass: Record<string, string> = { paid: "ok", pending: "warn", expired: "", cancelled: "bad", refunded: "bad" };
 
 export default async function AdminBookings({ searchParams }: { searchParams: { q?: string; status?: string; type?: string; zahlung?: string } }) {
-  const [orders, types] = await Promise.all([listOrders(searchParams), ticketTypeMap()]);
+  const [orders, types, expired] = await Promise.all([
+    listOrders(searchParams),
+    ticketTypeMap(),
+    db().from("orders").select("id", { count: "exact", head: true }).eq("status", "expired").is("paid_at", null),
+  ]);
 
   return (
     <main className="wrap" style={{ paddingTop: 32, paddingBottom: 64 }}>
@@ -31,7 +37,7 @@ export default async function AdminBookings({ searchParams }: { searchParams: { 
         <button className="btn">Filtern</button>
       </form>
 
-      <div className="row small muted" style={{ justifyContent: "space-between", marginBottom: 8 }}><span>{orders.length} Buchungen</span><a href="/api/admin/export">Excel-Export</a></div>
+      <div className="row small muted" style={{ justifyContent: "space-between", marginBottom: 8 }}><span>{orders.length} Buchungen</span><span className="row"><DeleteExpiredButton count={expired.count ?? 0} /><a href="/api/admin/export">Excel-Export</a></span></div>
       <div className="table-wrap">
         <table>
           <thead>
