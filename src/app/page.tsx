@@ -1,0 +1,124 @@
+import SiteHeader from "@/components/SiteHeader";
+import SiteFooter from "@/components/SiteFooter";
+import BookingForm, { type BookableType } from "@/components/BookingForm";
+import { EVENT } from "@/lib/event";
+import { getAvailability, getTicketTypes } from "@/lib/orders";
+
+export const dynamic = "force-dynamic";
+
+async function loadTickets(): Promise<{ types: BookableType[]; maxPerOrder: number; salesOpen: boolean; error: boolean }> {
+  try {
+    const [types, avail] = await Promise.all([getTicketTypes(), getAvailability()]);
+    return {
+      types: types.map((t) => ({
+        id: t.id,
+        name: t.name,
+        description: t.description,
+        admission: t.admission,
+        price_cents: t.price_cents,
+        available: avail.perType[t.id] ?? 0,
+      })),
+      maxPerOrder: avail.maxPerOrder,
+      salesOpen: avail.salesOpen,
+      error: false,
+    };
+  } catch (err) {
+    console.error(err);
+    return { types: [], maxPerOrder: EVENT.maxPerOrder, salesOpen: false, error: true };
+  }
+}
+
+export default async function Home() {
+  const { types, maxPerOrder, salesOpen, error } = await loadTickets();
+  const soldOut = types.length > 0 && types.every((t) => t.available === 0);
+
+  return (
+    <>
+      <SiteHeader />
+      <main>
+        <section className="hero">
+          <div className="wrap">
+            <p className="eyebrow">{EVENT.school} · Abiturjahrgang 2027</p>
+            <h1 className="display">Abiball<br />2027</h1>
+            <p className="lead">
+              {EVENT.dateLabel}, {EVENT.timeLabel}. {EVENT.venueName}, München.
+            </p>
+            <div className="row" style={{ marginTop: 40 }}>
+              <a className="btn" href="#tickets">Tickets sichern</a>
+              <a className="btn ghost" href="#details">Details</a>
+            </div>
+          </div>
+        </section>
+
+        <section className="section" id="details">
+          <div className="wrap">
+            <h2 className="h2">Der Abend</h2>
+            <dl className="facts">
+              <div>
+                <dt>Wann</dt>
+                <dd>{EVENT.dateLabel}<br />{EVENT.timeLabel}</dd>
+              </div>
+              <div>
+                <dt>Wo</dt>
+                <dd>
+                  {EVENT.venueName}<br />{EVENT.venueStreet}<br />{EVENT.venueCity}
+                </dd>
+              </div>
+              <div>
+                <dt>Ablauf</dt>
+                <dd>19:00 Einlass Ball<br />Buffet und Programm<br />22:30 Afterparty bis 04:00</dd>
+              </div>
+            </dl>
+          </div>
+        </section>
+
+        <section className="section" id="tickets">
+          <div className="wrap narrow">
+            <h2 className="h2">Tickets</h2>
+            {error ? (
+              <div className="note">Der Ticketverkauf ist gerade nicht erreichbar. Bitte versuche es später noch einmal.</div>
+            ) : !salesOpen ? (
+              <div className="note">Der Ticketverkauf ist derzeit geschlossen.</div>
+            ) : soldOut ? (
+              <div className="note">Alle Tickets sind vergeben. Danke an alle, die dabei sind.</div>
+            ) : null}
+            {!error && types.length > 0 && <BookingForm types={types} maxPerOrder={maxPerOrder} salesOpen={salesOpen && !soldOut} />}
+          </div>
+        </section>
+
+        <section className="section" id="faq">
+          <div className="wrap">
+            <h2 className="h2">Gut zu wissen</h2>
+            <div className="faq">
+              <div>
+                <h3 className="h3">Welches Ticket brauche ich?</h3>
+                <p>Das Ball-Ticket gilt ab 19:00 Uhr für den ganzen Abend mit Buffet, Programm und Afterparty. Das Afterparty-Ticket gilt ab 22:30 Uhr.</p>
+              </div>
+              <div>
+                <h3 className="h3">Wie bekomme ich meine Tickets?</h3>
+                <p>Direkt nach der Zahlung per E-Mail als PDF, für Apple Wallet und Google Wallet. Jedes Ticket hat einen eigenen QR-Code für genau einen Einlass.</p>
+              </div>
+              <div>
+                <h3 className="h3">Jugendschutz</h3>
+                <p>Personen unter 18 Jahren dürfen ohne erziehungsbeauftragte Person nur bis 24 Uhr bleiben. Bitte einen Ausweis mitbringen.</p>
+              </div>
+              <div>
+                <h3 className="h3">Rückgabe</h3>
+                <p>Für Veranstaltungstickets gibt es kein Widerrufsrecht (§ 312g Abs. 2 Nr. 9 BGB). Bei Fragen melde dich beim Abiturjahrgang, siehe Impressum.</p>
+              </div>
+              <div>
+                <h3 className="h3">Wer veranstaltet?</h3>
+                <p>{EVENT.organizerNote}</p>
+              </div>
+              <div>
+                <h3 className="h3">Anfahrt</h3>
+                <p>{EVENT.venueName}, {EVENT.venueStreet}, {EVENT.venueCity}. Am besten mit S-Bahn oder U-Bahn bis Ostbahnhof.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+      <SiteFooter />
+    </>
+  );
+}
