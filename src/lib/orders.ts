@@ -27,6 +27,7 @@ export async function getAvailability(): Promise<{
   totalCapacity: number;
   maxPerOrder: number;
   salesOpen: boolean;
+  pricesFinal: boolean;
 }> {
   const [{ data: avail, error: e1 }, { data: settings, error: e2 }] = await Promise.all([
     db().rpc("ticket_availability"),
@@ -46,6 +47,7 @@ export async function getAvailability(): Promise<{
     totalCapacity: settings.total_capacity,
     maxPerOrder: settings.max_per_order,
     salesOpen: settings.sales_open,
+    pricesFinal: settings.prices_final ?? false,
   };
 }
 

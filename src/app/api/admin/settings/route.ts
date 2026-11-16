@@ -12,6 +12,7 @@ const schema = z.object({
     total_capacity: z.number().int().min(1).max(5000),
     max_per_order: z.number().int().min(1).max(20),
     sales_open: z.boolean(),
+    prices_final: z.boolean(),
   }),
   types: z
     .array(

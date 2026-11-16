@@ -14,9 +14,9 @@ const PREVIEW_TYPES: BookableType[] = [
   { id: "afterparty", name: "Afterparty-Ticket", description: "Einlass ab 22:30 Uhr zur Afterparty.", admission: "ab 22:30 Uhr", price_cents: 2000, available: 100 },
 ];
 
-async function loadTickets(): Promise<{ types: BookableType[]; maxPerOrder: number; salesOpen: boolean; error: boolean; preview: boolean }> {
+async function loadTickets(): Promise<{ types: BookableType[]; maxPerOrder: number; salesOpen: boolean; error: boolean; preview: boolean; pricesFinal: boolean }> {
   if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    return { types: PREVIEW_TYPES, maxPerOrder: EVENT.maxPerOrder, salesOpen: true, error: false, preview: true };
+    return { types: PREVIEW_TYPES, maxPerOrder: EVENT.maxPerOrder, salesOpen: true, error: false, preview: true, pricesFinal: false };
   }
   try {
     const [types, avail] = await Promise.all([getTicketTypes(), getAvailability()]);
@@ -33,15 +33,16 @@ async function loadTickets(): Promise<{ types: BookableType[]; maxPerOrder: numb
       salesOpen: avail.salesOpen,
       error: false,
       preview: false,
+      pricesFinal: avail.pricesFinal,
     };
   } catch (err) {
     console.error(err);
-    return { types: [], maxPerOrder: EVENT.maxPerOrder, salesOpen: false, error: true, preview: false };
+    return { types: [], maxPerOrder: EVENT.maxPerOrder, salesOpen: false, error: true, preview: false, pricesFinal: false };
   }
 }
 
 export default async function Home() {
-  const { types, maxPerOrder, salesOpen, error, preview } = await loadTickets();
+  const { types, maxPerOrder, salesOpen, error, preview, pricesFinal } = await loadTickets();
   const soldOut = types.length > 0 && types.every((t) => t.available === 0);
 
   return (
@@ -113,7 +114,7 @@ export default async function Home() {
             ) : soldOut ? (
               <div className="note">Alle Tickets sind vergeben. Danke an alle, die dabei sind.</div>
             ) : null}
-            {!error && types.length > 0 && <BookingForm types={types} maxPerOrder={maxPerOrder} salesOpen={salesOpen && !soldOut} preview={preview} />}
+            {!error && types.length > 0 && <BookingForm types={types} maxPerOrder={maxPerOrder} salesOpen={salesOpen && !soldOut} preview={preview} pricesFinal={pricesFinal} />}
           </div>
         </section>
 

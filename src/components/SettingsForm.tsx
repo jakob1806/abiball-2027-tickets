@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import type { TicketType } from "@/lib/types";
 
 type T = TicketType & { free: number };
-interface S { total_capacity: number; max_per_order: number; sales_open: boolean }
+interface S { total_capacity: number; max_per_order: number; sales_open: boolean; prices_final: boolean }
 
 const toEuro = (c: number) => (c / 100).toFixed(2).replace(".", ",");
 const toCents = (s: string) => Math.round(Number(s.replace(/\./g, "").replace(",", ".")) * 100);
@@ -54,6 +54,10 @@ export default function SettingsForm({ initialSettings, initialTypes }: { initia
         <label className="check">
           <input type="checkbox" checked={s.sales_open} onChange={(e) => setS({ ...s, sales_open: e.target.checked })} />
           <span><strong>Ticketverkauf geöffnet</strong><br /><span className="muted small">Wenn aus, zeigt die Seite „Verkauf geschlossen“. Manuelle Buchungen im Admin gehen weiterhin.</span></span>
+        </label>
+        <label className="check">
+          <input type="checkbox" checked={s.prices_final} onChange={(e) => setS({ ...s, prices_final: e.target.checked })} />
+          <span><strong>Preise sind final</strong><br /><span className="muted small">Wenn aus, stehen die Preise auf der Seite in Klammern mit dem Hinweis „Platzhalter“. Abgerechnet wird trotzdem der eingetragene Preis.</span></span>
         </label>
         <div className="grid-2">
           <label className="field">

@@ -15,7 +15,8 @@ export interface BookableType {
 
 const euro = (c: number) => new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(c / 100);
 
-export default function BookingForm({ types, maxPerOrder, salesOpen, preview = false }: { types: BookableType[]; maxPerOrder: number; salesOpen: boolean; preview?: boolean }) {
+export default function BookingForm({ types, maxPerOrder, salesOpen, preview = false, pricesFinal = true }: { types: BookableType[]; maxPerOrder: number; salesOpen: boolean; preview?: boolean; pricesFinal?: boolean }) {
+  const price = (c: number) => (pricesFinal ? euro(c) : `(${euro(c)})`);
   const [qty, setQty] = useState<Record<string, number>>(() => Object.fromEntries(types.map((t) => [t.id, 0])));
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -83,7 +84,10 @@ export default function BookingForm({ types, maxPerOrder, salesOpen, preview = f
                 {t.available === 0 ? "Ausverkauft" : t.available <= 20 ? `Nur noch ${t.available} verfügbar` : "Verfügbar"}
               </div>
             </div>
-            <div className="price">{euro(t.price_cents)}</div>
+            <div className="price">
+              {price(t.price_cents)}
+              {!pricesFinal && <span className="price-note">Platzhalter</span>}
+            </div>
             <div className="stepper" aria-label={`Anzahl ${t.name}`}>
               <button type="button" onClick={() => change(t.id, -1)} disabled={!salesOpen || (qty[t.id] ?? 0) === 0} aria-label="weniger">−</button>
               <output aria-live="polite">{qty[t.id] ?? 0}</output>
@@ -170,7 +174,7 @@ export default function BookingForm({ types, maxPerOrder, salesOpen, preview = f
 
           <div className="summary">
             <span>{total} {total === 1 ? "Ticket" : "Tickets"}</span>
-            <strong>{euro(sum)}</strong>
+            <strong>{price(sum)}{!pricesFinal && <span className="price-note">Platzhalter</span>}</strong>
           </div>
           {error && <div className="alert" role="alert">{error}</div>}
           <button className="btn block" type="submit" disabled={busy || !salesOpen}>
