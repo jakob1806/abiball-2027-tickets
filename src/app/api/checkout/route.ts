@@ -8,7 +8,7 @@ import { reservationErrorMessage, ticketTypeMap } from "@/lib/orders";
 import type { Order } from "@/lib/types";
 import { getBankDetails, newTransferReference, sendTransferInstructions, transferDueDate } from "@/lib/transfer";
 import { getAvailability } from "@/lib/orders";
-import { clientIp, hit, tooManyRequests } from "@/lib/rate-limit";
+import { checkoutLimit, clientIp, hit, tooManyRequests } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -73,7 +73,7 @@ export async function POST(req: Request) {
         "Von hier wurden heute schon mehrere Bestellungen per Überweisung angelegt. Bitte zahle mit Karte oder melde dich beim Abiturjahrgang.",
       );
     }
-  } else if (!(await hit("checkout", ip))) {
+  } else if (!(await hit("checkout", ip, await checkoutLimit()))) {
     return tooManyRequests("checkout", "Zu viele Bestellversuche in kurzer Zeit. Bitte warte ein paar Minuten und versuche es dann erneut.");
   }
 

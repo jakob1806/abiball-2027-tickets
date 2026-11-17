@@ -13,7 +13,10 @@ import { requireEnv } from "./env";
  * (z. B. Schule) teilen sich eine IP-Adresse.
  */
 export const LIMITS = {
-  /** Bestellungen mit Kartenzahlung (Reservierung hält 30 Minuten) */
+  /**
+   * Bestellungen mit Kartenzahlung (Reservierung hält 30 Minuten). max ist nur der Ersatzwert –
+   * der echte Wert steht in Admin → Einstellungen („Bestellungen pro Gerät in 15 Minuten“, settings.checkout_limit).
+   */
   checkout: { max: 8, windowSeconds: 15 * 60 },
   /**
    * Bestellungen per Überweisung (Reservierung hält Tage und verschickt eine Mail) – pro IP.
@@ -56,8 +59,9 @@ function bucket(name: LimitName, key: string): string {
   return `${name}:${h.digest("base64url").slice(0, 22)}`;
 }
 
-async function call(name: LimitName, key: string, cost: 0 | 1): Promise<boolean> {
-  const { max, windowSeconds } = LIMITS[name];
+async function call(name: LimitName, key: string, cost: 0 | 1, maxOverride?: number): Promise<boolean> {
+  const { windowSeconds } = LIMITS[name];
+  const max = maxOverride ?? LIMITS[name].max;
   try {
     const { data, error } = await db().rpc("rate_limit_hit", {
       p_bucket: bucket(name, key),
@@ -75,8 +79,15 @@ async function call(name: LimitName, key: string, cost: 0 | 1): Promise<boolean>
 }
 
 /** Zählt einen Versuch. false = Limit überschritten. */
-export function hit(name: LimitName, key: string): Promise<boolean> {
-  return call(name, key, 1);
+export function hit(name: LimitName, key: string, maxOverride?: number): Promise<boolean> {
+  return call(name, key, 1, maxOverride);
+}
+
+/** Bestell-Limit aus den Einstellungen (Admin); bei Fehler der Ersatzwert aus LIMITS. */
+export async function checkoutLimit(): Promise<number> {
+  const { data, error } = await db().from("settings").select("checkout_limit").single();
+  if (error || typeof data?.checkout_limit !== "number") return LIMITS.checkout.max;
+  return data.checkout_limit;
 }
 
 /** Prüft nur, ohne zu zählen (für Logins: gezählt werden nur Fehlversuche). */

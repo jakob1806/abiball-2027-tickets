@@ -1,7 +1,13 @@
 -- Begrenzungen gegen Missbrauch: zu viele Bestellungen oder Login-Versuche vom selben Gerät.
 -- Gezählt wird pro „Eimer“ (z. B. "checkout:<Hash der IP>") in festen Zeitfenstern.
 -- Die App speichert keine IP-Adressen, nur einen HMAC-Hash; Einträge werden nach einem Tag gelöscht.
--- Rückwärtskompatibel: nur neue Tabelle und neue Funktion, der bisherige Code nutzt beides nicht.
+-- Rückwärtskompatibel: nur neue Tabelle, neue Funktion und eine neue Spalte mit Standardwert;
+-- der bisherige Code nutzt nichts davon.
+
+-- Bestellungen pro Gerät/Netz in 15 Minuten, im Admin einstellbar (z. B. zum Verkaufsstart im Schul-WLAN hochsetzen)
+alter table public.settings
+  add column if not exists checkout_limit integer not null default 8
+  constraint settings_checkout_limit_check check (checkout_limit between 1 and 500);
 
 create table if not exists public.rate_limits (
   bucket       text        not null,
