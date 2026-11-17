@@ -12,6 +12,7 @@ const schema = z.object({
   settings: z.object({
     total_capacity: z.number().int().min(1).max(5000),
     max_per_order: z.number().int().min(1).max(20),
+    checkout_limit: z.number().int().min(1, "Bestellungen pro Gerät: mindestens 1.").max(500, "Bestellungen pro Gerät: höchstens 500."),
     sales_open: z.boolean(),
     prices_final: z.boolean(),
     bank_transfer_enabled: z.boolean(),

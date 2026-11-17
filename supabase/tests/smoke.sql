@@ -64,5 +64,24 @@ begin
     raise exception 'anon darf check_in ausführen';
   end if;
 
+  -- 8) Begrenzung: 2 erlaubt, der 3. Versuch nicht; Nachschauen zählt nicht mit
+  if not rate_limit_hit('ci:test', 2, 60) then raise exception 'Begrenzung: 1. Versuch abgelehnt'; end if;
+  if not rate_limit_hit('ci:test', 2, 60, 0) then raise exception 'Begrenzung: Nachschauen nach 1 Versuch abgelehnt'; end if;
+  if not rate_limit_hit('ci:test', 2, 60) then raise exception 'Begrenzung: 2. Versuch abgelehnt'; end if;
+  if rate_limit_hit('ci:test', 2, 60, 0) then raise exception 'Begrenzung: Nachschauen nach 2 Versuchen erlaubt'; end if;
+  if rate_limit_hit('ci:test', 2, 60) then raise exception 'Begrenzung: 3. Versuch erlaubt'; end if;
+  if not rate_limit_hit('ci:anders', 2, 60) then raise exception 'Begrenzung: anderer Eimer betroffen'; end if;
+  if has_function_privilege('anon', 'public.rate_limit_hit(text, integer, integer, integer)', 'execute') then
+    raise exception 'anon darf rate_limit_hit ausführen';
+  end if;
+
+  -- 9) Bestell-Limit im Admin: Standard 8, nur 1–500 erlaubt
+  if (select checkout_limit from settings) <> 8 then raise exception 'checkout_limit: Standard nicht 8'; end if;
+  begin
+    update settings set checkout_limit = 0;
+    raise exception 'checkout_limit = 0 wurde akzeptiert';
+  exception when check_violation then null;
+  end;
+
   raise notice 'Rauchtest bestanden';
 end $$;

@@ -8,6 +8,7 @@ type T = TicketType & { free: number };
 interface S {
   total_capacity: number;
   max_per_order: number;
+  checkout_limit: number;
   sales_open: boolean;
   prices_final: boolean;
   bank_transfer_enabled: boolean;
@@ -80,6 +81,21 @@ export default function SettingsForm({ initialSettings, initialTypes }: { initia
             <input type="number" min={1} max={20} value={s.max_per_order} onChange={(e) => setS({ ...s, max_per_order: Number(e.target.value) })} />
           </label>
         </div>
+        <label className="field" style={{ maxWidth: 260 }}>
+          Bestellungen pro Gerät in 15 Minuten
+          <input type="number" min={1} max={500} value={s.checkout_limit} onChange={(e) => setS({ ...s, checkout_limit: Number(e.target.value) })} />
+        </label>
+        <p className="small muted" style={{ margin: 0 }}>
+          Schutz vor Skripten, die alle Plätze reservieren. Alle Geräte im selben WLAN (z. B. Schule) zählen als ein Gerät –
+          zum Verkaufsstart hochsetzen (z. B. 40), danach wieder auf 8. Gilt für Kartenzahlung; Überweisungen sind
+          getrennt begrenzt (10 pro Gerät und Tag).
+        </p>
+        {s.checkout_limit * s.max_per_order >= s.total_capacity && (
+          <p className="small" style={{ margin: 0 }}>
+            Achtung: Bei {s.checkout_limit} Bestellungen à bis zu {s.max_per_order} Tickets könnte ein einzelnes Gerät
+            rechnerisch alle Plätze für 30 Minuten blockieren. Nur kurzzeitig so hoch lassen.
+          </p>
+        )}
         {quotaSum > s.total_capacity && (
           <p className="small muted" style={{ margin: 0 }}>
             Hinweis: Die Kontingente ergeben zusammen {quotaSum}, die Gesamtkapazität ({s.total_capacity}) begrenzt zusätzlich. Das ist so gewollt möglich.
