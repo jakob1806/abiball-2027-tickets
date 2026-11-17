@@ -120,7 +120,7 @@ export default function BookingForm({ types, maxPerOrder, salesOpen, preview = f
           </div>
         ))}
       </div>
-      <p className="small muted" style={{ margin: 0 }}>Höchstens {maxPerOrder} Tickets pro Bestellung. Deine Plätze werden nach dem Klick auf „Zur Zahlung“ 30 Minuten für dich reserviert.</p>
+      <p className="small muted" style={{ margin: 0 }}>Höchstens {maxPerOrder} Tickets pro Bestellung. Deine Plätze werden nach dem Klick auf „Zahlungspflichtig bestellen“ 30 Minuten für dich reserviert.</p>
 
       {total > 0 && (
         <>
@@ -221,12 +221,12 @@ export default function BookingForm({ types, maxPerOrder, salesOpen, preview = f
           )}
           {error && <div className="alert" role="alert">{error}</div>}
           <button className="btn block" type="submit" disabled={busy || !salesOpen}>
-            {busy ? "Einen Moment …" : payment === "transfer" && transferDays ? "Verbindlich bestellen" : "Zur Zahlung"}
+            {busy ? "Einen Moment …" : "Zahlungspflichtig bestellen"}
           </button>
           <p className="small muted" style={{ margin: 0, textAlign: "center" }}>
             {payment === "transfer" && transferDays
               ? "Du bekommst die Bankdaten und einen GiroCode für deine Banking-App."
-              : "Sichere Zahlung über Stripe: Karte, Apple Pay oder Google Pay."}
+              : "Danach geht es zur sicheren Zahlung über Stripe: Karte, Apple Pay oder Google Pay."}
           </p>
         </>
       )}

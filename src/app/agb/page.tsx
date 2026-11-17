@@ -23,7 +23,11 @@ export default function Agb() {
       </p>
       <p>
         (3) Diese AGB gelten für alle Ticketkäufe über diese Website sowie für Tickets, die das Orga-Team direkt verkauft
-        (z. B. gegen Barzahlung oder Überweisung).
+        (z. B. gegen Barzahlung oder Überweisung) oder die an der Abendkasse verkauft werden.
+      </p>
+      <p>
+        (4) Veranstaltungsort ist das {EVENT.venueName}. Betreiberin ist die AAHHH GmbH; sie ist nicht Vertragspartnerin
+        des Ticketkaufs.
       </p>
 
       <h2>§ 2 Veranstaltung</h2>
@@ -46,12 +50,16 @@ export default function Agb() {
 
       <h2>§ 4 Vertragsschluss</h2>
       <p>
-        (1) Die Darstellung der Tickets auf der Website ist noch kein verbindliches Angebot. Mit dem Klick auf „Zur Zahlung“
-        und dem Abschluss der Zahlung gibst du ein verbindliches Angebot zum Kauf der ausgewählten Tickets ab.
+        (1) Die Darstellung der Tickets auf der Website ist noch kein verbindliches Angebot. Im Bestellformular wählst du
+        Ticketart und Anzahl, gibst Namen, E-Mail-Adresse und Altersgruppen an, bestätigst die Hinweise zu Jugendschutz und
+        AGB und wählst die Zahlungsart. Vor dem Absenden siehst du Anzahl und Gesamtpreis und kannst alle Eingaben jederzeit
+        korrigieren. Mit dem Klick auf „Zahlungspflichtig bestellen“ gibst du ein verbindliches Angebot zum Kauf der
+        ausgewählten Tickets ab.
       </p>
       <p>
-        (2) Nach dem Klick auf „Zur Zahlung“ werden die Plätze für 30 Minuten reserviert. Wird die Zahlung in dieser Zeit
-        nicht abgeschlossen, verfällt die Reservierung.
+        (2) Bei Zahlung per Karte, Apple Pay oder Google Pay wirst du danach zur Bezahlseite von Stripe weitergeleitet. Die
+        Plätze sind für 30 Minuten reserviert. Wird die Zahlung in dieser Zeit nicht abgeschlossen, nehmen wir dein Angebot
+        nicht an und die Reservierung verfällt.
       </p>
       <p>
         (3) Bei Zahlung per Karte, Apple Pay oder Google Pay kommt der Vertrag zustande, sobald die Zahlung erfolgreich war
@@ -84,12 +92,15 @@ export default function Agb() {
         nach Zahlungseingang ausgestellt.
       </p>
 
-      <h2>§ 6 Kein Widerrufsrecht</h2>
+      <h2>§ 6 Kein Widerrufsrecht, Gewährleistung</h2>
       <p>
         Für Verträge über Freizeitveranstaltungen, die für einen bestimmten Termin vorgesehen sind, besteht nach § 312g
         Abs. 2 Nr. 9 BGB <strong>kein Widerrufsrecht</strong>. Eine Rückgabe oder Erstattung ist deshalb ausgeschlossen,
         sofern die Veranstaltung wie angekündigt stattfindet. Deine Rechte bei Absage oder Verlegung (§ 10) bleiben
         unberührt.
+      </p>
+      <p>
+        Im Übrigen gelten die gesetzlichen Rechte bei Mängeln.
       </p>
 
       <h2>§ 7 Tickets und Einlass</h2>
@@ -112,6 +123,10 @@ export default function Agb() {
         Afterparty-Tickets ab 22:30 Uhr. Wer das Gelände verlässt, hat keinen Anspruch auf erneuten Einlass, sofern das
         Orga-Team nichts anderes regelt.
       </p>
+      <p>
+        (5) An der Abendkasse werden, solange Plätze frei sind, nur Afterparty-Tickets gegen Barzahlung verkauft. Name und
+        Alter werden dort anhand eines amtlichen Lichtbildausweises erfasst; der Einlass erfolgt direkt im Anschluss.
+      </p>
 
       <h2>§ 8 Jugendschutz</h2>
       <p>Es gilt das Jugendschutzgesetz (JuSchG). Insbesondere:</p>
@@ -119,7 +134,8 @@ export default function Agb() {
         <li>Personen unter 16 Jahren dürfen nur in Begleitung einer personensorgeberechtigten oder erziehungsbeauftragten Person teilnehmen.</li>
         <li>Jugendliche ab 16 und unter 18 Jahren dürfen ohne eine solche Begleitung bis 24:00 Uhr bleiben; danach nur mit einer erziehungsbeauftragten Person.</li>
         <li>Eine erziehungsbeauftragte Person muss volljährig sein und eine schriftliche Erziehungsbeauftragung der Eltern vorlegen. <Ph>[Ggf. Link zum Formular ergänzen]</Ph></li>
-        <li>Branntweinhaltige Getränke werden nur an Volljährige ausgegeben, Bier, Wein und Sekt erst ab 16 Jahren.</li>
+        <li>Branntweinhaltige Getränke (auch Mischgetränke) werden nur an Volljährige ausgegeben, Bier, Wein und Sekt erst ab 16 Jahren – auch in Begleitung der Eltern nicht an Jüngere.</li>
+        <li>Tabakwaren und E-Zigaretten dürfen an Personen unter 18 Jahren nicht abgegeben werden. Im Gebäude ist das Rauchen ohnehin für alle verboten.</li>
       </ul>
       <p>
         Bei der Bestellung gibst du für jede Person das Alter am Tag des Abiballs an. Am Einlass wird es mit einem amtlichen
@@ -133,15 +149,16 @@ export default function Agb() {
 
       <h2>§ 9 Hausrecht und Verhalten</h2>
       <p>
-        Es gelten die Hausordnung des Veranstaltungsorts und die Anweisungen des Orga-Teams, des Sicherheitsdienstes und des
-        Personals vor Ort. Wer andere gefährdet oder belästigt, erheblich alkoholisiert ist, Drogen mitbringt oder grob gegen
+        Es gelten die Hausordnung des {EVENT.venueName} (AAHHH GmbH) und die Anweisungen des Orga-Teams, des
+        Sicherheitsdienstes, der Veranstaltungsleitung und des Personals vor Ort. Im Gebäude gilt Rauchverbot. Wer andere gefährdet oder belästigt, erheblich alkoholisiert ist, Drogen mitbringt oder grob gegen
         die Hausordnung verstößt, kann vom Einlass ausgeschlossen oder der Veranstaltung verwiesen werden. Ein Anspruch auf
         Erstattung besteht in diesem Fall nicht. Für Schäden, die Gäste schuldhaft verursachen, haften sie selbst.
       </p>
 
       <h2>§ 10 Absage und Verlegung</h2>
       <p>
-        (1) Muss der Veranstalter den {EVENT.title} absagen, erstatten wir den gezahlten Ticketpreis.
+        (1) Wird der {EVENT.title} abgesagt – auch wegen höherer Gewalt oder einer behördlichen Anordnung –, erstatten wir
+        den gezahlten Ticketpreis vollständig, in der Regel innerhalb von 14 Tagen nach Bekanntgabe der Absage.
       </p>
       <p>
         (2) Wird die Veranstaltung auf einen anderen Termin verlegt, bleiben die Tickets gültig. Wer den neuen Termin nicht
@@ -164,8 +181,14 @@ export default function Agb() {
         darfst, und zwar begrenzt auf den vorhersehbaren, typischerweise eintretenden Schaden.
       </p>
       <p>
-        (3) Für mitgebrachte Gegenstände, Garderobe und Wertsachen haften wir nur nach Abs. 1 und 2.
-        <Ph>[Regelung zur Garderobe ergänzen, falls es eine betreute Garderobe gibt]</Ph>
+        (3) Die Garderobe betreut der Abiturjahrgang (nicht die AAHHH GmbH). Für abgegebene Garderobe haften wir nach den
+        gesetzlichen Vorschriften im Rahmen von Abs. 1 und 2. Wertsachen und Bargeld nehmen wir an der Garderobe nicht in
+        Verwahrung; bitte lass sie nicht in abgegebener Kleidung. Für nicht abgegebene, mitgebrachte Gegenstände haften wir
+        nur nach Abs. 1 und 2.{" "}
+        <Ph>[Prüfen: Gibt es eine betreute Garderobe, ggf. mit Gebühr? Sonst Satz 1 und 2 ersetzen durch: „Eine betreute Garderobe gibt es nicht; für mitgebrachte Gegenstände haften wir nur nach Abs. 1 und 2.“]</Ph>
+      </p>
+      <p>
+        (4) Die Haftung nach dem Produkthaftungsgesetz bleibt unberührt.
       </p>
 
       <h2>§ 12 Foto- und Videoaufnahmen</h2>
@@ -185,7 +208,11 @@ export default function Agb() {
         EU-Staat behältst du den Schutz der zwingenden Vorschriften deines Aufenthaltsstaats.
       </p>
       <p>
-        (2) Sollte eine Bestimmung dieser AGB unwirksam sein, bleiben die übrigen Bestimmungen wirksam. An die Stelle der
+        (2) Zur Teilnahme an einem Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle sind wir nicht bereit
+        und nicht verpflichtet.
+      </p>
+      <p>
+        (3) Sollte eine Bestimmung dieser AGB unwirksam sein, bleiben die übrigen Bestimmungen wirksam. An die Stelle der
         unwirksamen Bestimmung tritt die gesetzliche Regelung.
       </p>
     </LegalPage>
