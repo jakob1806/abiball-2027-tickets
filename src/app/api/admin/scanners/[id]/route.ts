@@ -9,7 +9,8 @@ export const dynamic = "force-dynamic";
 const schema = z.object({ active: z.boolean().optional(), name: z.string().trim().min(2).max(80).optional() });
 
 /** Konto sperren/entsperren oder umbenennen. Sperren meldet alle Geräte sofort ab. */
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const denied = await requireAdminApi();
   if (denied) return denied;
   const parsed = schema.safeParse(await req.json().catch(() => null));
@@ -24,7 +25,8 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 }
 
 /** Konto löschen. Bisherige Scans bleiben mit dem Namen protokolliert. */
-export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const denied = await requireAdminApi();
   if (denied) return denied;
   const { error } = await db().from("scanner_users").delete().eq("id", params.id);

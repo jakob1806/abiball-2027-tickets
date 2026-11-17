@@ -10,7 +10,8 @@ import { isStripeTestMode } from "@/lib/stripe";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminOrder({ params }: { params: { id: string } }) {
+export default async function AdminOrder(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const order = await getOrderById(params.id);
   if (!order) notFound();
   const types = await ticketTypeMap();

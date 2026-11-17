@@ -13,7 +13,8 @@ import { googleWalletUrl } from "@/lib/gwallet";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Ticket", robots: { index: false, follow: false } };
 
-export default async function TicketPage({ params }: { params: { code: string } }) {
+export default async function TicketPage(props: { params: Promise<{ code: string }> }) {
+  const params = await props.params;
   const found = await getTicketByCode(decodeURIComponent(params.code));
   if (!found) notFound();
   const { ticket, order } = found;

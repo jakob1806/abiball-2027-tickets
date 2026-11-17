@@ -4,7 +4,8 @@ import { buildPkpass, isAppleWalletConfigured } from "@/lib/pkpass";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function GET(_req: Request, { params }: { params: { code: string } }) {
+export async function GET(_req: Request, props: { params: Promise<{ code: string }> }) {
+  const params = await props.params;
   if (!isAppleWalletConfigured()) return new Response("Apple Wallet ist nicht eingerichtet", { status: 501 });
   const found = await getTicketByCode(decodeURIComponent(params.code));
   if (!found || found.order.status !== "paid" || found.ticket.status !== "valid") {

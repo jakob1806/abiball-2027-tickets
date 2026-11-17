@@ -7,7 +7,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /** Admin bestätigt den Zahlungseingang einer Überweisung → Tickets + Mail. */
-export async function POST(_req: Request, { params }: { params: { id: string } }) {
+export async function POST(_req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const denied = await requireAdminApi();
   if (denied) return denied;
   const { data: o } = await db().from("orders").select("id, status, payment_method").eq("id", params.id).maybeSingle();
